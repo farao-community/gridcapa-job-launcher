@@ -14,9 +14,9 @@ public class JobController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JobController.class);
 
-    @PostMapping(value = "/jobs/{id}")
-    public void launchJob(@PathVariable int id) {
-        LOGGER.info("Received order to launch task numero {}", id);
+    @PostMapping(value = "/start/{id}")
+    public void launchJob(@PathVariable String id) {
+        LOGGER.info("Received order to launch task {}", id);
     }
 
 }
