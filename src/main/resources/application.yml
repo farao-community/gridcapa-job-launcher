@@ -1,0 +1,2 @@
+job-launcher:
+  taskManagerUrl: http://localhost/core/valid/task-manager/
