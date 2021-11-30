@@ -1,4 +1,4 @@
-package com.faraocommunity.farao.gridcapajoblauncher;
+package com.farao_community.farao.gridcapa.job_launcher;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.ConstructorBinding;

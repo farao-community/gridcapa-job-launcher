@@ -1,4 +1,4 @@
-package com.faraocommunity.farao.gridcapajoblauncher;
+package com.farao_community.farao.gridcapa.job_launcher;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

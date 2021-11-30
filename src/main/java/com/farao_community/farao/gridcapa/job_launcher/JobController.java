@@ -1,4 +1,4 @@
-package com.faraocommunity.farao.gridcapajoblauncher;
+package com.farao_community.farao.gridcapa.job_launcher;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
