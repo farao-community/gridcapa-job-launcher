@@ -30,7 +30,7 @@ public class JobController {
     @PostMapping(value = "/start/{id}")
     public void launchJob(@PathVariable String id) {
         LOGGER.info("Received order to launch task {}", id);
-        String url = jobLauncherConfigurationProperties.getTaskManagerUrlProperties().getTaskManagerUrl() + "tasks/launch/" + id;
+        String url = jobLauncherConfigurationProperties.getTaskManagerUrlProperties().getTaskManagerUrl() + id;
         LOGGER.info("Requesting URL: " + url);
         RestTemplate restTemplate = restTemplateBuilder.build();
         ResponseEntity<String> responseEntity = restTemplate.postForEntity(url, null, String.class);
