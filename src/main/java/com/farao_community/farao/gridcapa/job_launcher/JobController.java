@@ -51,7 +51,9 @@ public class JobController {
         TaskDto taskDto = responseEntity.getBody();
         // Code = 200.
         if (responseEntity.getStatusCode() == HttpStatus.OK && taskDto != null) {
-            if (taskDto.getStatus() == TaskStatus.READY) {
+            if (taskDto.getStatus() == TaskStatus.READY
+                || taskDto.getStatus() == TaskStatus.SUCCESS
+                || taskDto.getStatus() == TaskStatus.ERROR) {
                 LOGGER.info("Task launched on TS {}", taskDto.getTimestamp());
                 streamBridge.send(RUN_BINDING, Objects.requireNonNull(responseEntity.getBody()));
             } else {
