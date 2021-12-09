@@ -13,7 +13,7 @@
 	<description>Service responsible of launching a task in a gridcapa-based application.</description>
 
 	<properties>
-		<task-manager.version>0.2.0-SNAPSHOT</task-manager.version>
+		<task-manager.version>0.1.0</task-manager.version>
 		<spring-cloud.version>Hoxton.SR12</spring-cloud.version>
 	</properties>
 
