@@ -15,8 +15,8 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @EnableConfigurationProperties(JobLauncherConfigurationProperties.class)
 @EnableWebMvc
 @SpringBootApplication
-public class GridcapaJobLauncherApplication {
+public class JobLauncherApplication {
     public static void main(String[] args) {
-        SpringApplication.run(GridcapaJobLauncherApplication.class, args);
+        SpringApplication.run(JobLauncherApplication.class, args);
     }
 }
