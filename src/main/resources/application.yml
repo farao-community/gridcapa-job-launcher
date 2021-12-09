@@ -1,2 +1,21 @@
+spring:
+  rabbitmq:
+    host: localhost
+    username: gridcapa
+    password: gridcapa
+    port: 5672
+  cloud:
+    stream:
+      bindings:
+        run-task:
+          binder: rabbit
+          destination: core-valid-run-task
+          group: job-launcher
+      rabbit:
+        default:
+          consumer:
+            auto-bind-dlq: true
+            max-attempts: 1
+
 job-launcher:
-  taskManagerUrl: http://localhost/core/valid/task-manager/tasks/launch/
+  task-manager-url: http://localhost/core/valid/task-manager/tasks/
