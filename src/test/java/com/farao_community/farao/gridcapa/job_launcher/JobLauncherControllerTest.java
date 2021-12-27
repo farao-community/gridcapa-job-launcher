@@ -12,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -36,11 +38,13 @@ class JobLauncherControllerTest {
 
     @Test
     void testLaunchJobOk() {
+
         ResponseEntity responseEntity = Mockito.mock(ResponseEntity.class);
         TaskDto taskDto = Mockito.mock(TaskDto.class);
         Mockito.when(restTemplate.getForEntity("http://test-uri/2021-12-09T21:30", TaskDto.class)).thenReturn(responseEntity);
         Mockito.when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
         Mockito.when(responseEntity.getBody()).thenReturn(taskDto);
+        Mockito.when(taskDto.getId()).thenReturn(UUID.randomUUID());
 
         ResponseEntity<Void> response = jobLauncherController.launchJob("2021-12-09T21:30");
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -52,6 +56,9 @@ class JobLauncherControllerTest {
         Mockito.when(restTemplate.getForEntity("http://test-uri/2021-12-09T21:30", TaskDto.class)).thenReturn(responseEntity);
         Mockito.when(responseEntity.getStatusCode()).thenReturn(HttpStatus.NOT_FOUND);
         Mockito.when(responseEntity.getBody()).thenReturn(null);
+        TaskDto taskDto = Mockito.mock(TaskDto.class);
+        Mockito.when(responseEntity.getBody()).thenReturn(taskDto);
+        Mockito.when(taskDto.getId()).thenReturn(UUID.randomUUID());
 
         ResponseEntity<Void> response = jobLauncherController.launchJob("2021-12-09T21:30");
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());

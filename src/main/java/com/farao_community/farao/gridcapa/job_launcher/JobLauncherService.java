@@ -14,7 +14,7 @@ import java.util.Objects;
  */
 @Service
 public class JobLauncherService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(JobLauncherService.class);
+    private static final Logger BUSINESS_LOGGER = LoggerFactory.getLogger("BUSINESS_LOGGER");
     private static final String RUN_BINDING = "run-task";
 
     private final StreamBridge streamBridge;
@@ -27,10 +27,10 @@ public class JobLauncherService {
         if (taskDto.getStatus() == TaskStatus.READY
             || taskDto.getStatus() == TaskStatus.SUCCESS
             || taskDto.getStatus() == TaskStatus.ERROR) {
-            LOGGER.info("Task launched on TS {}", taskDto.getTimestamp());
+            BUSINESS_LOGGER.info("Task launched on TS {}", taskDto.getTimestamp());
             streamBridge.send(RUN_BINDING, Objects.requireNonNull(taskDto));
         } else {
-            LOGGER.warn("Failed to launch task with timestamp {} because it is not ready yet", taskDto.getTimestamp());
+            BUSINESS_LOGGER.warn("Failed to launch task with timestamp {} because it is not ready yet", taskDto.getTimestamp());
         }
     }
 }

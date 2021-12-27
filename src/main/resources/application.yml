@@ -1,4 +1,10 @@
+logback:
+  amqp:
+    exchange: "task-manager-logs-exchange"
+    routing-key: "#"
 spring:
+  application:
+    name: gridcapa-job-launcher
   rabbitmq:
     host: localhost
     username: gridcapa
@@ -8,14 +14,8 @@ spring:
     stream:
       bindings:
         run-task:
-          binder: rabbit
-          destination: core-valid-run-task
-          group: job-launcher
-      rabbit:
-        default:
-          consumer:
-            auto-bind-dlq: true
-            max-attempts: 1
+          destination: cse-d2cc-run-task
+          group: cse-d2cc-job-launcher
 
 job-launcher:
-  task-manager-url: http://localhost/core/valid/task-manager/tasks/
+  task-manager-url: http://localhost:8080/tasks/
