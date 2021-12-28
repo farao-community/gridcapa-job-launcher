@@ -1,6 +1,6 @@
 logback:
   amqp:
-    exchange: "task-manager-logs-exchange"
+    exchange: task-manager-logs-exchange
     routing-key: "#"
 spring:
   application:
@@ -16,6 +16,11 @@ spring:
         run-task:
           destination: cse-d2cc-run-task
           group: cse-d2cc-job-launcher
+      rabbit:
+        default:
+          consumer:
+            auto-bind-dlq: true
+            max-attempts: 1
 
 job-launcher:
   task-manager-url: http://localhost:8080/tasks/
