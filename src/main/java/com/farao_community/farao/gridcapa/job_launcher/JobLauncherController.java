@@ -9,6 +9,7 @@ package com.farao_community.farao.gridcapa.job_launcher;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,12 +43,26 @@ public class JobLauncherController {
         LOGGER.info("Requesting URL: {}", url);
         ResponseEntity<TaskDto> responseEntity = restTemplateBuilder.build().getForEntity(url, TaskDto.class);
         TaskDto taskDto = responseEntity.getBody();
-        if (responseEntity.getStatusCode() == HttpStatus.OK && taskDto != null) {
-            jobLauncherService.launchJob(taskDto);
-            return ResponseEntity.ok().build();
+        if (taskDto != null) {
+            String taskId = taskDto.getId().toString();
+            // propagate in logs MDC the task id as an extra field to be able to match microservices logs with calculation tasks.
+            // This should be done only once, as soon as the information to add in mdc is available.
+            MDC.put("gridcapa-task-id", taskId);
+
+            if (responseEntity.getStatusCode() == HttpStatus.OK) {
+                jobLauncherService.launchJob(taskDto);
+                return ResponseEntity.ok().build();
+            } else {
+                return getEmptyResponseEntity(timestamp);
+            }
         } else {
-            LOGGER.error("Failed to retrieve task with timestamp {}", timestamp);
-            return ResponseEntity.notFound().build();
+            return getEmptyResponseEntity(timestamp);
         }
     }
+
+    private ResponseEntity<Void> getEmptyResponseEntity(@PathVariable String timestamp) {
+        LOGGER.error("Failed to retrieve task with timestamp {}", timestamp);
+        return ResponseEntity.notFound().build();
+    }
+
 }
