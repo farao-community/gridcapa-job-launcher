@@ -24,3 +24,9 @@ spring:
 
 job-launcher:
   task-manager-url: http://localhost:8080/tasks/
+
+scheduler:
+  enable: true
+  start-hour: 15
+  end-hour: 20
+  cronjob: "*/5 * ${scheduler.start-hour}-${scheduler.end-hour} * * *"
