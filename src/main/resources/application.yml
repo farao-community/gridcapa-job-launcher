@@ -27,6 +27,6 @@ job-launcher:
 
 scheduler:
   enable: true
-  start-hour: 15
+  start-hour: 8
   end-hour: 20
   cronjob: "*/5 * ${scheduler.start-hour}-${scheduler.end-hour} * * *"

@@ -26,7 +26,7 @@ class JobLauncherSchedulerTest {
     @Test
     void scheduledIsCalledAtLeastOneTime() {
         await()
-                .atMost(Duration.TEN_SECONDS)
+                .atMost(Duration.FIVE_MINUTES)
                 .untilAsserted(() -> verify(jobLauncherScheduler, atLeastOnce()).automaticTaskStart());
     }
 }
