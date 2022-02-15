@@ -4,3 +4,10 @@ logback:
     routing-key: "#"
 job-launcher:
   task-manager-url: http://test-uri/
+
+scheduler:
+  enable: true
+  start-hour: 00
+  end-hour: 23
+  cronjob: "*/5 * ${scheduler.start-hour}-${scheduler.end-hour} * * *"
+
