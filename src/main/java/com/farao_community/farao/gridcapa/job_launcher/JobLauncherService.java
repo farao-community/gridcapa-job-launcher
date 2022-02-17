@@ -24,7 +24,6 @@ public class JobLauncherService {
 
     private final StreamBridge streamBridge;
     private final Logger jobLauncherEventsLogger;
-    private static final Logger LOGGER = LoggerFactory.getLogger(JobLauncherService.class);
 
     public JobLauncherService(StreamBridge streamBridge, Logger jobLauncherEventsLogger) {
         this.streamBridge = streamBridge;
