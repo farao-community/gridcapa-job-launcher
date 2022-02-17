@@ -57,8 +57,6 @@ public class JobLauncherScheduler {
                 TaskDto taskDto = responseEntity.getBody();
 
                 if (taskDto != null) {
-                    LOGGER.info("status " + taskDto.getStatus().toString());
-                    LOGGER.info("status " + taskDto.getProcessFiles().toString());
                     String taskId = taskDto.getId().toString();
                     // propagate in logs MDC the task id as an extra field to be able to match microservices logs with calculation tasks.
                     // This should be done only once, as soon as the information to add in mdc is available.
