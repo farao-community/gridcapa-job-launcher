@@ -36,7 +36,6 @@ public class JobLauncherService {
             || taskDto.getStatus() == TaskStatus.SUCCESS
             || taskDto.getStatus() == TaskStatus.ERROR) {
             jobLauncherEventsLogger.info("Task launched on TS {}", taskDto.getTimestamp());
-            LOGGER.info("task launched");
             streamBridge.send(RUN_BINDING, Objects.requireNonNull(taskDto));
         } else {
             jobLauncherEventsLogger.warn("Failed to launch task with timestamp {} because it is not ready yet", taskDto.getTimestamp());
