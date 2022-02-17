@@ -29,4 +29,4 @@ scheduler:
   enable: true
   start-hour: 0
   end-hour: 20
-  cronjob: "* */2 ${scheduler.start-hour}-${scheduler.end-hour} * * *"
+  cronjob: "0 */2 ${scheduler.start-hour}-${scheduler.end-hour} * * *"

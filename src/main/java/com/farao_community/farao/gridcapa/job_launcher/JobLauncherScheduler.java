@@ -29,7 +29,7 @@ import java.time.format.DateTimeFormatter;
 public class JobLauncherScheduler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JobLauncherScheduler.class);
-    private static final String PATTERN_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm";
+    private static final String PATTERN_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
     private static final ZoneId EUROPE_BRUSSELS_ZONE_ID = ZoneId.of("Europe/Brussels");
 
     private final DateTimeFormatter timestampFormat = DateTimeFormatter.ofPattern(PATTERN_DATE_FORMAT);
@@ -51,18 +51,27 @@ public class JobLauncherScheduler {
         while (startOfDayTimestamp.isBefore(endOfDayTimestamp)) {
             String requestUrl = jobLauncherConfigurationProperties.getTaskManagerUrlProperties().getTaskManagerUrl() + timestampFormat.format(startOfDayTimestamp);
             LOGGER.info("Requesting URL: {}", requestUrl);
-            ResponseEntity<TaskDto> responseEntity = restTemplateBuilder.build().getForEntity(requestUrl, TaskDto.class);
-            TaskDto taskDto = responseEntity.getBody();
-            if (taskDto != null) {
-                String taskId = taskDto.getId().toString();
-                // propagate in logs MDC the task id as an extra field to be able to match microservices logs with calculation tasks.
-                // This should be done only once, as soon as the information to add in mdc is available.
-                MDC.put("gridcapa-task-id", taskId);
 
-                if (responseEntity.getStatusCode() == HttpStatus.OK) {
-                    LOGGER.info("Launch job plop: {}", requestUrl);
-                    jobLauncherService.launchJob(taskDto);
+            try {
+                ResponseEntity<TaskDto> responseEntity = restTemplateBuilder.build().getForEntity(requestUrl, TaskDto.class);
+                TaskDto taskDto = responseEntity.getBody();
+
+                if (taskDto != null) {
+                    LOGGER.info("status " + taskDto.getStatus().toString());
+                    LOGGER.info("status " + taskDto.getProcessFiles().toString());
+                    String taskId = taskDto.getId().toString();
+                    // propagate in logs MDC the task id as an extra field to be able to match microservices logs with calculation tasks.
+                    // This should be done only once, as soon as the information to add in mdc is available.
+                    MDC.put("gridcapa-task-id", taskId);
+
+                    if (responseEntity.getStatusCode() == HttpStatus.OK) {
+                        jobLauncherService.launchJob(taskDto);
+                    }
                 }
+            } catch (Exception e) {
+                LOGGER.error("Exception " + e.getMessage());
+            } finally {
+                startOfDayTimestamp = startOfDayTimestamp.plusHours(1);
             }
         }
     }

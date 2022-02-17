@@ -8,6 +8,7 @@ package com.farao_community.farao.gridcapa.job_launcher;
 
 import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskStatus;
+import org.slf4j.LoggerFactory;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +24,7 @@ public class JobLauncherService {
 
     private final StreamBridge streamBridge;
     private final Logger jobLauncherEventsLogger;
+    private static final Logger LOGGER = LoggerFactory.getLogger(JobLauncherService.class);
 
     public JobLauncherService(StreamBridge streamBridge, Logger jobLauncherEventsLogger) {
         this.streamBridge = streamBridge;
@@ -34,6 +36,7 @@ public class JobLauncherService {
             || taskDto.getStatus() == TaskStatus.SUCCESS
             || taskDto.getStatus() == TaskStatus.ERROR) {
             jobLauncherEventsLogger.info("Task launched on TS {}", taskDto.getTimestamp());
+            LOGGER.info("task launched");
             streamBridge.send(RUN_BINDING, Objects.requireNonNull(taskDto));
         } else {
             jobLauncherEventsLogger.warn("Failed to launch task with timestamp {} because it is not ready yet", taskDto.getTimestamp());
