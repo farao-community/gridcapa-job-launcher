@@ -8,12 +8,12 @@ package com.farao_community.farao.gridcapa.job_launcher;
 
 import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskStatus;
-import org.slf4j.LoggerFactory;
+
+import org.slf4j.Logger;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
-import org.slf4j.Logger;
 
 /**
  * @author Joris Mancini {@literal <joris.mancini at rte-france.com>}

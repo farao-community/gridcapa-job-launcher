@@ -3,11 +3,12 @@ logback:
     exchange: task-manager-logs-exchange
     routing-key: "#"
 job-launcher:
-  task-manager-url: http://test-uri/
+  task-manager-timestamp-url: http://test-uri/
+  task-manager-business-date-url: http://test-uri/
 
 scheduler:
   enable: true
-  start-hour: 00
+  start-hour: 0
   end-hour: 23
-  cronjob: "*/5 * ${scheduler.start-hour}-${scheduler.end-hour} * * *"
+  frequency-in-minutes: 1
 

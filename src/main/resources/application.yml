@@ -23,7 +23,8 @@ spring:
             max-attempts: 1
 
 job-launcher:
-  task-manager-url: http://localhost:8080/tasks/
+  task-manager-timestamp-url: http://localhost:8080/tasks/
+  task-manager-business-date-url: http://localhost:8080/tasks/businessdate/
 
 scheduler:
   enable: true

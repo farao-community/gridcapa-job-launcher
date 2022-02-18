@@ -7,33 +7,28 @@
 package com.farao_community.farao.gridcapa.job_launcher;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.ConstructorBinding;
 
 /**
  * @author Alexandre Montigny {@literal <alexandre.montigny at rte-france.com>}
  */
-@ConstructorBinding
 @ConfigurationProperties("job-launcher")
 public class JobLauncherConfigurationProperties {
-    private final TaskManagerUrlProperties taskManagerUrl;
+    private String taskManagerTimestampUrl;
+    private String taskManagerBusinessDateUrl;
 
-    public JobLauncherConfigurationProperties(TaskManagerUrlProperties taskManagerUrl) {
-        this.taskManagerUrl = taskManagerUrl;
+    public String getTaskManagerTimestampUrl() {
+        return taskManagerTimestampUrl;
     }
 
-    public TaskManagerUrlProperties getTaskManagerUrlProperties() {
-        return taskManagerUrl;
+    public void setTaskManagerTimestampUrl(String taskManagerTimestampUrl) {
+        this.taskManagerTimestampUrl = taskManagerTimestampUrl;
     }
 
-    public static final class TaskManagerUrlProperties {
-        private final String taskManagerUrl;
+    public String getTaskManagerBusinessDateUrl() {
+        return taskManagerBusinessDateUrl;
+    }
 
-        public TaskManagerUrlProperties(String taskManagerUrl) {
-            this.taskManagerUrl = taskManagerUrl;
-        }
-
-        public String getTaskManagerUrl() {
-            return taskManagerUrl;
-        }
+    public void setTaskManagerBusinessDateUrl(String taskManagerBusinessDateUrl) {
+        this.taskManagerBusinessDateUrl = taskManagerBusinessDateUrl;
     }
 }
