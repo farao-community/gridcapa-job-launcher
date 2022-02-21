@@ -81,11 +81,9 @@ public class JobLauncherScheduler {
     }
 
     private int findDaysToAdd() {
-        switch (jobLauncherConfigurationProperties.getProcess().getTag().toLowerCase()) {
-            case "core_valid":
-                return 1;
-            default:
-                return 0;
+        if ("core_valid".equalsIgnoreCase(jobLauncherConfigurationProperties.getProcess().getTag())) {
+            return 1;
         }
+        return 0;
     }
 }
