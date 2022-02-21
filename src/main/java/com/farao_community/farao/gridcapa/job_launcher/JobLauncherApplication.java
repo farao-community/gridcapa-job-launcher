@@ -9,12 +9,14 @@ package com.farao_community.farao.gridcapa.job_launcher;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @SuppressWarnings("hideutilityclassconstructor")
 @EnableConfigurationProperties(JobLauncherConfigurationProperties.class)
 @EnableWebMvc
 @SpringBootApplication
+@EnableScheduling
 public class JobLauncherApplication {
     public static void main(String[] args) {
         SpringApplication.run(JobLauncherApplication.class, args);

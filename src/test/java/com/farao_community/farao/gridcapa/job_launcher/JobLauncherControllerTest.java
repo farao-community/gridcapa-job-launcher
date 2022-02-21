@@ -38,7 +38,6 @@ class JobLauncherControllerTest {
 
     @Test
     void testLaunchJobOk() {
-
         ResponseEntity responseEntity = Mockito.mock(ResponseEntity.class);
         TaskDto taskDto = Mockito.mock(TaskDto.class);
         Mockito.when(restTemplate.getForEntity("http://test-uri/2021-12-09T21:30", TaskDto.class)).thenReturn(responseEntity);
