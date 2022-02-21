@@ -33,24 +33,25 @@ public class JobLauncherScheduler {
     private static final String RUN_BINDING = "run-task";
     private static final Logger LOGGER = LoggerFactory.getLogger(JobLauncherScheduler.class);
     private static final String PATTERN_DATE_FORMAT = "yyyy-MM-dd";
-    private static final ZoneId EUROPE_BRUSSELS_ZONE_ID = ZoneId.of("Europe/Brussels");
 
     private final DateTimeFormatter timestampFormat = DateTimeFormatter.ofPattern(PATTERN_DATE_FORMAT);
     private final JobLauncherConfigurationProperties jobLauncherConfigurationProperties;
+    private final Logger jobLauncherEventsLogger;
     private final RestTemplateBuilder restTemplateBuilder;
     private final StreamBridge streamBridge;
 
-    public JobLauncherScheduler(JobLauncherConfigurationProperties jobLauncherConfigurationProperties, RestTemplateBuilder restTemplateBuilder, StreamBridge streamBridge) {
+    public JobLauncherScheduler(JobLauncherConfigurationProperties jobLauncherConfigurationProperties, Logger jobLauncherEventsLogger, RestTemplateBuilder restTemplateBuilder, StreamBridge streamBridge) {
         this.jobLauncherConfigurationProperties = jobLauncherConfigurationProperties;
+        this.jobLauncherEventsLogger = jobLauncherEventsLogger;
         this.restTemplateBuilder = restTemplateBuilder;
         this.streamBridge = streamBridge;
     }
 
     @Scheduled(cron = "0 */${scheduler.frequency-in-minutes} ${scheduler.start-hour}-${scheduler.end-hour} * * *")
     public void automaticTaskStart() {
-        OffsetDateTime startOfDayTimestamp = getstartingTimestamp();
+        OffsetDateTime startOfDayTimestamp = getstartingDate();
 
-        String requestUrl = jobLauncherConfigurationProperties.getTaskManagerBusinessDateUrl() + timestampFormat.format(startOfDayTimestamp);
+        String requestUrl = jobLauncherConfigurationProperties.getUrl().getTaskManagerBusinessDateUrl() + timestampFormat.format(startOfDayTimestamp);
         LOGGER.info("Requesting URL: {}", requestUrl);
 
         try {
@@ -65,17 +66,26 @@ public class JobLauncherScheduler {
                     MDC.put("gridcapa-task-id", taskId);
 
                     if (task.getStatus() == TaskStatus.READY) {
-                        LOGGER.info("Task launched on TS {}", task.getTimestamp());
+                        jobLauncherEventsLogger.info("Task launched on TS {}", task.getTimestamp());
                         streamBridge.send(RUN_BINDING, Objects.requireNonNull(task));
                     }
                 }
             }
         } catch (Exception e) {
-            LOGGER.error(String.format("Exception %s", e.getMessage()));
+            LOGGER.error("Error during automatic launch", e);
         }
     }
 
-    private OffsetDateTime getstartingTimestamp() {
-        return OffsetDateTime.now().plusDays(1).atZoneSameInstant(EUROPE_BRUSSELS_ZONE_ID).toOffsetDateTime();
+    private OffsetDateTime getstartingDate() {
+        return OffsetDateTime.now(ZoneId.of(jobLauncherConfigurationProperties.getProcess().getTimezone())).plusDays(findDaysToAdd());
+    }
+
+    private int findDaysToAdd() {
+        switch (jobLauncherConfigurationProperties.getProcess().getTag().toLowerCase()) {
+            case "core_valid":
+                return 1;
+            default:
+                return 0;
+        }
     }
 }

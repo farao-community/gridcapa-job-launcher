@@ -39,7 +39,7 @@ public class JobLauncherController {
     @PostMapping(value = "/start/{timestamp}")
     public ResponseEntity<Void> launchJob(@PathVariable String timestamp) {
         LOGGER.info("Received order to launch task {}", timestamp);
-        String requestUrl = jobLauncherConfigurationProperties.getTaskManagerTimestampUrl() + timestamp;
+        String requestUrl = jobLauncherConfigurationProperties.getUrl().getTaskManagerTimestampUrl() + timestamp;
         LOGGER.info("Requesting URL: {}", requestUrl);
         ResponseEntity<TaskDto> responseEntity = restTemplateBuilder.build().getForEntity(requestUrl, TaskDto.class);
         TaskDto taskDto = responseEntity.getBody();

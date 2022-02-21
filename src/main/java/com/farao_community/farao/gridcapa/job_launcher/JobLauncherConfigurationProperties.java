@@ -7,28 +7,63 @@
 package com.farao_community.farao.gridcapa.job_launcher;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.ConstructorBinding;
 
 /**
  * @author Alexandre Montigny {@literal <alexandre.montigny at rte-france.com>}
  */
+@ConstructorBinding
 @ConfigurationProperties("job-launcher")
 public class JobLauncherConfigurationProperties {
-    private String taskManagerTimestampUrl;
-    private String taskManagerBusinessDateUrl;
+    private final UrlProperties url;
+    private final ProcessProperties process;
 
-    public String getTaskManagerTimestampUrl() {
-        return taskManagerTimestampUrl;
+    public JobLauncherConfigurationProperties(UrlProperties url, ProcessProperties process) {
+        this.url = url;
+        this.process = process;
     }
 
-    public void setTaskManagerTimestampUrl(String taskManagerTimestampUrl) {
-        this.taskManagerTimestampUrl = taskManagerTimestampUrl;
+    public UrlProperties getUrl() {
+        return url;
     }
 
-    public String getTaskManagerBusinessDateUrl() {
-        return taskManagerBusinessDateUrl;
+    public ProcessProperties getProcess() {
+        return process;
     }
 
-    public void setTaskManagerBusinessDateUrl(String taskManagerBusinessDateUrl) {
-        this.taskManagerBusinessDateUrl = taskManagerBusinessDateUrl;
+    public static final class UrlProperties {
+        private final String taskManagerTimestampUrl;
+        private final String taskManagerBusinessDateUrl;
+
+        public UrlProperties(String taskManagerTimestampUrl, String taskManagerBusinessDateUrl) {
+            this.taskManagerTimestampUrl = taskManagerTimestampUrl;
+            this.taskManagerBusinessDateUrl = taskManagerBusinessDateUrl;
+        }
+
+        public String getTaskManagerTimestampUrl() {
+            return taskManagerTimestampUrl;
+        }
+
+        public String getTaskManagerBusinessDateUrl() {
+            return taskManagerBusinessDateUrl;
+        }
+    }
+
+    public static final class ProcessProperties {
+        private final String tag;
+        private final String timezone;
+
+        public ProcessProperties(String tag, String timezone) {
+            this.tag = tag;
+            this.timezone = timezone;
+        }
+
+        public String getTag() {
+            return tag;
+        }
+
+        public String getTimezone() {
+            return timezone;
+        }
     }
 }

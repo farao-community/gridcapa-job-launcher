@@ -3,12 +3,15 @@ logback:
     exchange: task-manager-logs-exchange
     routing-key: "#"
 job-launcher:
-  task-manager-timestamp-url: http://test-uri/
-  task-manager-business-date-url: http://test-uri/
+  url:
+    task-manager-timestamp-url: http://test-uri/
+    task-manager-business-date-url: http://test-uri/
+  process:
+    tag: CORE_VALID
+    timezone: CET
 
 scheduler:
   enable: true
   start-hour: 0
-  end-hour: 23
+  end-hour: 20
   frequency-in-minutes: 1
-
