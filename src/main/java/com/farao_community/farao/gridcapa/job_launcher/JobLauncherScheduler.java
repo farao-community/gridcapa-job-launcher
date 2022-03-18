@@ -30,7 +30,7 @@ import java.util.Objects;
 @Component
 @ConditionalOnProperty(name = "scheduler.enable", havingValue = "true")
 public class JobLauncherScheduler {
-    private static final String RUN_BINDING = "run-task";
+    private static final String RUN_BINDING = "run-task-auto";
     private static final Logger LOGGER = LoggerFactory.getLogger(JobLauncherScheduler.class);
     private static final String PATTERN_DATE_FORMAT = "yyyy-MM-dd";
 
