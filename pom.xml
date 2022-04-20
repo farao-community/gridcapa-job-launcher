@@ -15,7 +15,7 @@
 	<properties>
 		<awaitability.version>3.1.6</awaitability.version>
 		<logstash.version>4.9</logstash.version>
-		<task-manager.version>0.3.0</task-manager.version>
+		<task-manager.version>1.1.0-SNAPSHOT</task-manager.version>
 	</properties>
 
 	<build>
