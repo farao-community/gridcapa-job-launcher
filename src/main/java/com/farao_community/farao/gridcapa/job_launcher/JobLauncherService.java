@@ -56,11 +56,11 @@ public class JobLauncherService {
             MDC.put("gridcapa-task-id", taskId);
 
             if (responseEntity.getStatusCode() == HttpStatus.OK) {
-                restTemplateBuilder.build().put(getUrlToUpdateTaskStatusToPending(timestamp), TaskDto.class);
                 if (taskDto.getStatus() == TaskStatus.READY
                     || taskDto.getStatus() == TaskStatus.SUCCESS
                     || taskDto.getStatus() == TaskStatus.ERROR) {
                     jobLauncherEventsLogger.info("Task launched on TS {}", taskDto.getTimestamp());
+                    restTemplateBuilder.build().put(getUrlToUpdateTaskStatusToPending(timestamp), TaskDto.class);
                     streamBridge.send(RUN_BINDING, Objects.requireNonNull(taskDto));
                 } else {
                     jobLauncherEventsLogger.warn("Failed to launch task with timestamp {} because it is not ready yet", taskDto.getTimestamp());
