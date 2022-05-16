@@ -59,7 +59,7 @@ public class JobLauncherService {
         LOGGER.info("Received order to launch task {}", timestamp);
         String requestUrl = getUrlToRetrieveTaskDto(timestamp);
         LOGGER.info("Requesting URL: {}", requestUrl);
-        ResponseEntity<TaskDto> responseEntity = restTemplateBuilder.build().getForEntity(requestUrl, TaskDto.class);
+        ResponseEntity<TaskDto> responseEntity = restTemplateBuilder.build().getForEntity(requestUrl, TaskDto.class); // NOSONAR
         TaskDto taskDto = responseEntity.getBody();
         if (taskDto != null) {
             String taskId = taskDto.getId().toString();
