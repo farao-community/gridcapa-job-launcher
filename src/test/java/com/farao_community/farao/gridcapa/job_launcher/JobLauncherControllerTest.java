@@ -38,12 +38,18 @@ class JobLauncherControllerTest {
 
     @Test
     void testLaunchJobOk() {
-        ResponseEntity responseEntity = Mockito.mock(ResponseEntity.class);
         TaskDto taskDto = Mockito.mock(TaskDto.class);
-        Mockito.when(restTemplate.getForEntity("http://test-uri/2021-12-09T21:30", TaskDto.class)).thenReturn(responseEntity);
-        Mockito.when(responseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
-        Mockito.when(responseEntity.getBody()).thenReturn(taskDto);
         Mockito.when(taskDto.getId()).thenReturn(UUID.randomUUID());
+
+        ResponseEntity getResponseEntity = Mockito.mock(ResponseEntity.class);
+        Mockito.when(restTemplate.getForEntity("http://test-uri/2021-12-09T21:30", TaskDto.class)).thenReturn(getResponseEntity);
+        Mockito.when(getResponseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
+        Mockito.when(getResponseEntity.getBody()).thenReturn(taskDto);
+
+        ResponseEntity putResponseEntity = Mockito.mock(ResponseEntity.class);
+        Mockito.when(restTemplate.getForEntity("http://test-uri/2021-12-09T21:30/status?status=PENDING", TaskDto.class)).thenReturn(putResponseEntity);
+        Mockito.when(putResponseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
+        Mockito.when(putResponseEntity.getBody()).thenReturn(taskDto);
 
         ResponseEntity<Void> response = jobLauncherController.launchJob("2021-12-09T21:30");
         assertEquals(HttpStatus.OK, response.getStatusCode());
