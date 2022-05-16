@@ -43,6 +43,18 @@ public class JobLauncherService {
         this.jobLauncherEventsLogger = jobLauncherEventsLogger;
     }
 
+    /**
+     * Trying to launch a computation. TaskDto is retrieved and status is checked, if its status enables to launch
+     * the computation (READY, SUCCESS or ERROR), task status is changed to PENDING in the meantime and a message
+     * to launch the computation is sent.
+     * A boolean is returned to define the status of the launch operation. It is false only when the task is not found.
+     * When the status does not enable to launch the computation it still returns true because the HTTP request was
+     * correctly formed, it is just internal business logic that does not allow to launch the computation. If not
+     * launched status will remain the same, if launched status will be changed to PENDING.
+     *
+     * @param timestamp: Task timestamp to be launched.
+     * @return False only when the timestamp does not exist. Otherwise, true whether computation is launched or not.
+     */
     public boolean launchJob(String timestamp) {
         LOGGER.info("Received order to launch task {}", timestamp);
         String requestUrl = getUrlToRetrieveTaskDto(timestamp);
