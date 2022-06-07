@@ -29,7 +29,7 @@ import java.util.function.Consumer;
 public class JobLauncherAutoService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JobLauncherAutoService.class);
-    private static final String RUN_BINDING = "launch-task-auto";
+    private static final String RUN_BINDING = "run-task-auto";
     private final Logger jobLauncherEventsLogger;
     private final StreamBridge streamBridge;
     private final JobLauncherConfigurationProperties jobLauncherConfigurationProperties;
