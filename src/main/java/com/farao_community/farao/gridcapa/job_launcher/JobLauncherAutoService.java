@@ -11,9 +11,11 @@ import com.farao_community.farao.gridcapa.task_manager.api.TaskStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Flux;
 
 import java.util.Objects;
@@ -30,10 +32,14 @@ public class JobLauncherAutoService {
     private static final String RUN_BINDING = "launch-task-auto";
     private final Logger jobLauncherEventsLogger;
     private final StreamBridge streamBridge;
+    private final JobLauncherConfigurationProperties jobLauncherConfigurationProperties;
+    private final RestTemplateBuilder restTemplateBuilder;
 
-    public JobLauncherAutoService(Logger jobLauncherEventsLogger, StreamBridge streamBridge) {
+    public JobLauncherAutoService(Logger jobLauncherEventsLogger, StreamBridge streamBridge, JobLauncherConfigurationProperties jobLauncherConfigurationProperties, RestTemplateBuilder restTemplateBuilder) {
         this.jobLauncherEventsLogger = jobLauncherEventsLogger;
         this.streamBridge = streamBridge;
+        this.jobLauncherConfigurationProperties = jobLauncherConfigurationProperties;
+        this.restTemplateBuilder = restTemplateBuilder;
     }
 
     @Bean
@@ -46,7 +52,15 @@ public class JobLauncherAutoService {
     void runReadyTasks(TaskDto taskDtoUpdated) {
         if (taskDtoUpdated.getStatus().equals(TaskStatus.READY)) {
             jobLauncherEventsLogger.info("Task launched on TS {}", taskDtoUpdated.getTimestamp());
+            restTemplateBuilder.build().put(getUrlToUpdateTaskStatusToPending(taskDtoUpdated), TaskDto.class);
             streamBridge.send(RUN_BINDING, Objects.requireNonNull(taskDtoUpdated));
         }
+    }
+
+    private String getUrlToUpdateTaskStatusToPending(TaskDto taskDto) {
+        String url = jobLauncherConfigurationProperties.getUrl().getTaskManagerTimestampUrl() + taskDto.getTimestamp() + "/status";
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url)
+                .queryParam("status", TaskStatus.PENDING);
+        return builder.toUriString();
     }
 }

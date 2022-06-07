@@ -19,6 +19,8 @@ spring:
         run-task-auto:
           destination: cse-d2cc-run-task-auto
           group: cse-d2cc-job-launcher
+        consumeTaskDtoUpdate-in-0:
+          destination: cse-cc-export-task-updated
       rabbit:
         default:
           consumer:
