@@ -1,0 +1,52 @@
+/*
+ * Copyright (c) 2021, RTE (http://www.rte-france.com)
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+package com.farao_community.farao.gridcapa.job_launcher;
+
+import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
+import com.farao_community.farao.gridcapa.task_manager.api.TaskStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cloud.stream.function.StreamBridge;
+import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+
+import java.util.Objects;
+import java.util.function.Consumer;
+
+/**
+ * @author Amira Kahya {@literal <amira.kahya at rte-france.com>}
+ */
+@Service
+@ConditionalOnProperty(name = "job-launcher.auto", havingValue = "true")
+public class JobLauncherAutoService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(JobLauncherAutoService.class);
+    private static final String RUN_BINDING = "launch-task-auto";
+    private final Logger jobLauncherEventsLogger;
+    private final StreamBridge streamBridge;
+
+    public JobLauncherAutoService(Logger jobLauncherEventsLogger, StreamBridge streamBridge) {
+        this.jobLauncherEventsLogger = jobLauncherEventsLogger;
+        this.streamBridge = streamBridge;
+    }
+
+    @Bean
+    public Consumer<Flux<TaskDto>> consumeTaskDtoUpdate() {
+        return f -> f
+                .onErrorContinue((t, r) -> LOGGER.error(t.getMessage(), t))
+                .subscribe(this::runReadyTasks);
+    }
+
+    void runReadyTasks(TaskDto taskDtoUpdated) {
+        if (taskDtoUpdated.getStatus().equals(TaskStatus.READY)) {
+            jobLauncherEventsLogger.info("Task launched on TS {}", taskDtoUpdated.getTimestamp());
+            streamBridge.send(RUN_BINDING, Objects.requireNonNull(taskDtoUpdated));
+        }
+    }
+}
