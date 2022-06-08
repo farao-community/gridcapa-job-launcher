@@ -13,19 +13,28 @@ spring:
   cloud:
     stream:
       bindings:
+        default:
+          group: cse-d2cc-job-launcher
         run-task:
           destination: cse-d2cc-run-task
-          group: cse-d2cc-job-launcher
         run-task-auto:
           destination: cse-d2cc-run-task-auto
-          group: cse-d2cc-job-launcher
+        consumeTaskDtoUpdate-in-0:
+          destination: cse-cc-export-task-updated
       rabbit:
         default:
           consumer:
             auto-bind-dlq: true
             max-attempts: 1
+        bindings:
+          consumeTaskDtoUpdate-in-0:
+            consumer:
+              binding-routing-key: status
+    function:
+      definition: consumeTaskDtoUpdate
 
 job-launcher:
+  auto: false
   url:
     task-manager-timestamp-url: http://localhost:8080/tasks/
     task-manager-business-date-url: http://localhost:8080/tasks/businessdate/
