@@ -10,6 +10,7 @@ import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.stream.function.StreamBridge;
@@ -51,6 +52,9 @@ public class JobLauncherAutoService {
 
     void runReadyTasks(TaskDto taskDtoUpdated) {
         if (taskDtoUpdated.getStatus().equals(TaskStatus.READY)) {
+            // propagate in logs MDC the task id as an extra field to be able to match microservices logs with calculation tasks.
+            // This should be done only once, as soon as the information to add in mdc is available.
+            MDC.put("gridcapa-task-id", taskDtoUpdated.getId().toString());
             jobLauncherEventsLogger.info("Task launched on TS {}", taskDtoUpdated.getTimestamp());
             restTemplateBuilder.build().put(getUrlToUpdateTaskStatusToPending(taskDtoUpdated), TaskDto.class);
             streamBridge.send(RUN_BINDING, Objects.requireNonNull(taskDtoUpdated));
