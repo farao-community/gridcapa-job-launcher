@@ -34,6 +34,14 @@ public class JobLauncherController {
         return getEmptyResponseEntity(timestamp);
     }
 
+    @PostMapping(value = "/stop/{timestamp}")
+    public ResponseEntity<Void> stopJob(@PathVariable String timestamp) {
+        if (jobLauncherService.stopJob(timestamp)) {
+            return ResponseEntity.ok().build();
+        }
+        return getEmptyResponseEntity(timestamp);
+    }
+
     private ResponseEntity<Void> getEmptyResponseEntity(@PathVariable String timestamp) {
         LOGGER.error("Failed to retrieve task with timestamp {}", timestamp);
         return ResponseEntity.notFound().build();
