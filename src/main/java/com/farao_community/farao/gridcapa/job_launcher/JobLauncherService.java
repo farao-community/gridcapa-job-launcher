@@ -28,6 +28,7 @@ import java.util.Objects;
 public class JobLauncherService {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobLauncherService.class);
     private static final String RUN_BINDING = "run-task";
+    private static final String STOP_BINDING = "stop-task";
 
     private final JobLauncherConfigurationProperties jobLauncherConfigurationProperties;
     private final RestTemplateBuilder restTemplateBuilder;
@@ -72,7 +73,7 @@ public class JobLauncherService {
                     || taskDto.getStatus() == TaskStatus.SUCCESS
                     || taskDto.getStatus() == TaskStatus.ERROR) {
                     jobLauncherEventsLogger.info("Task launched on TS {}", taskDto.getTimestamp());
-                    restTemplateBuilder.build().put(getUrlToUpdateTaskStatusToPending(timestamp), TaskDto.class);
+                    restTemplateBuilder.build().put(getUrlToUpdateTaskStatus(timestamp, TaskStatus.PENDING), TaskDto.class);
                     streamBridge.send(RUN_BINDING, Objects.requireNonNull(taskDto));
                 } else {
                     jobLauncherEventsLogger.warn("Failed to launch task with timestamp {} because it is not ready yet", taskDto.getTimestamp());
@@ -83,14 +84,34 @@ public class JobLauncherService {
         return false;
     }
 
-    String getUrlToRetrieveTaskDto(String timestamp) {
+    public boolean stopJob(String timestamp) {
+        LOGGER.info("Received order to interrupt task {}", timestamp);
+        String requestUrl = getUrlToRetrieveTaskDto(timestamp);
+        LOGGER.info("Requesting URL: {}", requestUrl);
+        ResponseEntity<TaskDto> responseEntity = restTemplateBuilder.build().getForEntity(requestUrl, TaskDto.class); // NOSONAR
+        if (responseEntity.getStatusCode() == HttpStatus.OK && responseEntity.getBody() != null) {
+            TaskDto taskDto = responseEntity.getBody();
+            if (taskDto.getStatus() == TaskStatus.RUNNING) {
+                jobLauncherEventsLogger.info("Stopping task with timestamp {}", taskDto.getTimestamp());
+                restTemplateBuilder.build().put(getUrlToUpdateTaskStatus(timestamp, TaskStatus.STOPPING), TaskDto.class);
+                streamBridge.send(STOP_BINDING, taskDto.getId().toString());
+            } else {
+                jobLauncherEventsLogger.warn("Failed to interrupt task with timestamp {} because it is not running yet", taskDto.getTimestamp());
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    private String getUrlToRetrieveTaskDto(String timestamp) {
         return jobLauncherConfigurationProperties.getUrl().getTaskManagerTimestampUrl() + timestamp;
     }
 
-    String getUrlToUpdateTaskStatusToPending(String timestamp) {
+    private String getUrlToUpdateTaskStatus(String timestamp, TaskStatus taskStatus) {
         String url = jobLauncherConfigurationProperties.getUrl().getTaskManagerTimestampUrl() + timestamp + "/status";
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url)
-            .queryParam("status", TaskStatus.PENDING);
+            .queryParam("status", taskStatus);
         return builder.toUriString();
     }
 }
