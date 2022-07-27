@@ -91,10 +91,12 @@ public class JobLauncherService {
         ResponseEntity<TaskDto> responseEntity = restTemplateBuilder.build().getForEntity(requestUrl, TaskDto.class); // NOSONAR
         if (responseEntity.getStatusCode() == HttpStatus.OK && responseEntity.getBody() != null) {
             TaskDto taskDto = responseEntity.getBody();
+            String taskId = taskDto.getId().toString();
+            MDC.put("gridcapa-task-id", taskId);
             if (taskDto.getStatus() == TaskStatus.RUNNING) {
                 jobLauncherEventsLogger.info("Stopping task with timestamp {}", taskDto.getTimestamp());
                 restTemplateBuilder.build().put(getUrlToUpdateTaskStatus(timestamp, TaskStatus.STOPPING), TaskDto.class);
-                streamBridge.send(STOP_BINDING, taskDto.getId().toString());
+                streamBridge.send(STOP_BINDING, taskId);
             } else {
                 jobLauncherEventsLogger.warn("Failed to interrupt task with timestamp {} because it is not running yet", taskDto.getTimestamp());
             }
