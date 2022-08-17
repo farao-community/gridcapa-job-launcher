@@ -71,7 +71,8 @@ public class JobLauncherService {
             if (responseEntity.getStatusCode() == HttpStatus.OK) {
                 if (taskDto.getStatus() == TaskStatus.READY
                     || taskDto.getStatus() == TaskStatus.SUCCESS
-                    || taskDto.getStatus() == TaskStatus.ERROR) {
+                    || taskDto.getStatus() == TaskStatus.ERROR
+                    || taskDto.getStatus() == TaskStatus.INTERRUPTED) {
                     jobLauncherEventsLogger.info("Task launched on TS {}", taskDto.getTimestamp());
                     restTemplateBuilder.build().put(getUrlToUpdateTaskStatus(timestamp, TaskStatus.PENDING), TaskDto.class);
                     streamBridge.send(RUN_BINDING, Objects.requireNonNull(taskDto));
