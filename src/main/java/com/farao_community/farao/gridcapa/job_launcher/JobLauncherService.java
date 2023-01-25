@@ -6,9 +6,10 @@
  */
 package com.farao_community.farao.gridcapa.job_launcher;
 
+import com.farao_community.farao.gridcapa.task_manager.api.ProcessFileDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskStatus;
-
+import com.farao_community.farao.minio_adapter.starter.MinioAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -19,6 +20,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -34,14 +37,17 @@ public class JobLauncherService {
     private final RestTemplateBuilder restTemplateBuilder;
     private final StreamBridge streamBridge;
     private final Logger jobLauncherEventsLogger;
+    private final MinioAdapter minioAdapter;
 
     public JobLauncherService(JobLauncherConfigurationProperties jobLauncherConfigurationProperties,
                               RestTemplateBuilder restTemplateBuilder, StreamBridge streamBridge,
-                              Logger jobLauncherEventsLogger) {
+                              Logger jobLauncherEventsLogger,
+                              MinioAdapter minioAdapter) {
         this.jobLauncherConfigurationProperties = jobLauncherConfigurationProperties;
         this.restTemplateBuilder = restTemplateBuilder;
         this.streamBridge = streamBridge;
         this.jobLauncherEventsLogger = jobLauncherEventsLogger;
+        this.minioAdapter = minioAdapter;
     }
 
     /**
@@ -62,7 +68,9 @@ public class JobLauncherService {
         LOGGER.info("Requesting URL: {}", requestUrl);
         ResponseEntity<TaskDto> responseEntity = restTemplateBuilder.build().getForEntity(requestUrl, TaskDto.class); // NOSONAR
         TaskDto taskDto = responseEntity.getBody();
+
         if (taskDto != null) {
+            taskDto = replaceFilenameWithPresignedUrls(taskDto);
             String taskId = taskDto.getId().toString();
             // propagate in logs MDC the task id as an extra field to be able to match microservices logs with calculation tasks.
             // This should be done only once, as soon as the information to add in mdc is available.
@@ -83,6 +91,25 @@ public class JobLauncherService {
             }
         }
         return false;
+    }
+
+    private TaskDto replaceFilenameWithPresignedUrls(TaskDto taskDto) {
+        List<ProcessFileDto> newInput = new ArrayList<>();
+        for (ProcessFileDto input : taskDto.getInputs()) {
+            ProcessFileDto processFileDto = new ProcessFileDto(input.getFileType(),
+                    input.getProcessFileStatus(),
+                    input.getFilename(),
+                    input.getLastModificationDate(),
+                    minioAdapter.generatePreSignedUrlFromFullMinioPath(input.getFileUrl(), 1));
+            newInput.add(processFileDto);
+        }
+        return new TaskDto(taskDto.getId(),
+                taskDto.getTimestamp(),
+                taskDto.getStatus(),
+                null,
+                newInput,
+                taskDto.getOutputs(),
+                taskDto.getProcessEvents());
     }
 
     public boolean stopJob(String timestamp) {

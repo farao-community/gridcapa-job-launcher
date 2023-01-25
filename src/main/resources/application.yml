@@ -49,3 +49,10 @@ scheduler:
   start-hour: 0
   end-hour: 20
   frequency-in-minutes: 1
+
+minio-adapter:
+  bucket: gridcapa
+  base-path: /SWE/D2CC
+  access-key: gridcapa
+  secret-key: gridcapa
+  url: http://localhost:9000

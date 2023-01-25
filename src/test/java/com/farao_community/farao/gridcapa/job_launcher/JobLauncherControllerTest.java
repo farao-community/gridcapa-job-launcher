@@ -1,6 +1,7 @@
 package com.farao_community.farao.gridcapa.job_launcher;
 
 import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
+import com.farao_community.farao.minio_adapter.starter.MinioAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -26,6 +27,9 @@ class JobLauncherControllerTest {
     private JobLauncherController jobLauncherController;
 
     private RestTemplate restTemplate;
+
+    @Autowired
+    private MinioAdapter minioAdapter;
 
     @MockBean
     private RestTemplateBuilder restTemplateBuilder;
