@@ -93,7 +93,7 @@ public class JobLauncherService {
         return false;
     }
 
-    private TaskDto replaceFilenameWithPresignedUrls(TaskDto taskDto) {
+    TaskDto replaceFilenameWithPresignedUrls(TaskDto taskDto) {
         List<ProcessFileDto> newInput = new ArrayList<>();
         for (ProcessFileDto input : taskDto.getInputs()) {
             ProcessFileDto processFileDto = new ProcessFileDto(input.getFileType(),
