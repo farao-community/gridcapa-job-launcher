@@ -1,7 +1,6 @@
 package com.farao_community.farao.gridcapa.job_launcher;
 
 import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
-import com.farao_community.farao.minio_adapter.starter.MinioAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -15,7 +14,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author Joris Mancini {@literal <joris.mancini at rte-france.com>}
@@ -27,9 +26,6 @@ class JobLauncherControllerTest {
     private JobLauncherController jobLauncherController;
 
     private RestTemplate restTemplate;
-
-    @Autowired
-    private MinioAdapter minioAdapter;
 
     @MockBean
     private RestTemplateBuilder restTemplateBuilder;
