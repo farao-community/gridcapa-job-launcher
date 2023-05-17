@@ -51,13 +51,18 @@ public class JobLauncherAutoService {
     }
 
     void runReadyTasks(TaskDto taskDtoUpdated) {
-        if (taskDtoUpdated.getStatus().equals(TaskStatus.READY)) {
-            // propagate in logs MDC the task id as an extra field to be able to match microservices logs with calculation tasks.
-            // This should be done only once, as soon as the information to add in mdc is available.
-            MDC.put("gridcapa-task-id", taskDtoUpdated.getId().toString());
-            jobLauncherEventsLogger.info("Task launched on TS {}", taskDtoUpdated.getTimestamp());
-            restTemplateBuilder.build().put(getUrlToUpdateTaskStatusToPending(taskDtoUpdated), TaskDto.class);
-            streamBridge.send(RUN_BINDING, Objects.requireNonNull(taskDtoUpdated));
+        try {
+            if (taskDtoUpdated.getStatus().equals(TaskStatus.READY)) {
+                // propagate in logs MDC the task id as an extra field to be able to match microservices logs with calculation tasks.
+                // This should be done only once, as soon as the information to add in mdc is available.
+                MDC.put("gridcapa-task-id", taskDtoUpdated.getId().toString());
+                jobLauncherEventsLogger.info("Task launched on TS {}", taskDtoUpdated.getTimestamp());
+                restTemplateBuilder.build().put(getUrlToUpdateTaskStatusToPending(taskDtoUpdated), TaskDto.class);
+                streamBridge.send(RUN_BINDING, Objects.requireNonNull(taskDtoUpdated));
+            }
+        } catch (Exception e) {
+            /* this exeption block avoids gridcapa export from disconnecting from spring cloud stream !*/
+            LOGGER.error(e.getMessage(), e);
         }
     }
 

@@ -9,6 +9,40 @@ job-launcher:
   process:
     tag: CORE_VALID
     timezone: CET
+  auto: true
+
+spring:
+  application:
+    name: gridcapa-job-launcher
+  rabbitmq:
+    host: localhost
+    username: gridcapa
+    password: gridcapa
+    port: 5672
+  cloud:
+    stream:
+      bindings:
+        default:
+          group: cse-d2cc-job-launcher
+        run-task:
+          destination: cse-d2cc-run-task
+        run-task-auto:
+          destination: cse-d2cc-run-task-auto
+        stop-task:
+          destination: cse-d2cc-stop-task
+        consumeTaskDtoUpdate-in-0:
+          destination: cse-cc-export-task-updated
+      rabbit:
+        default:
+          consumer:
+            auto-bind-dlq: true
+            max-attempts: 1
+        bindings:
+          consumeTaskDtoUpdate-in-0:
+            consumer:
+              binding-routing-key: status
+    function:
+      definition: consumeTaskDtoUpdate
 
 scheduler:
   enable: true
