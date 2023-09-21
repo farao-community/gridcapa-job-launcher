@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.farao-community.farao</groupId>
 		<artifactId>farao-parent-ws</artifactId>
-		<version>1.5.0-SNAPSHOT</version>
+		<version>1.5.0</version>
 	</parent>
 	<artifactId>gridcapa-job-launcher</artifactId>
 	<version>1.8.0-SNAPSHOT</version>
@@ -15,7 +15,7 @@
 	<properties>
 		<awaitability.version>3.1.6</awaitability.version>
 		<logstash.version>4.9</logstash.version>
-		<task-manager.version>1.20.0</task-manager.version>
+		<task-manager.version>1.21.0</task-manager.version>
 	</properties>
 
 	<build>
