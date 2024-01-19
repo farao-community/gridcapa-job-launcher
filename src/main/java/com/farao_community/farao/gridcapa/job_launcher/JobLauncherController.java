@@ -6,12 +6,17 @@
  */
 package com.farao_community.farao.gridcapa.job_launcher;
 
+import com.farao_community.farao.gridcapa.task_manager.api.ParameterDto;
+import com.farao_community.farao.gridcapa.task_manager.api.TaskParameterDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * @author Alexandre Montigny {@literal <alexandre.montigny at rte-france.com>}
@@ -27,8 +32,12 @@ public class JobLauncherController {
     }
 
     @PostMapping(value = "/start/{timestamp}")
-    public ResponseEntity<Void> launchJob(@PathVariable String timestamp) {
-        if (jobLauncherService.launchJob(timestamp)) {
+    public ResponseEntity<Void> launchJob(@PathVariable String timestamp, @RequestBody List<ParameterDto> parameters) {
+        List<TaskParameterDto> taskParameterDtos = List.of();
+        if (parameters != null) {
+            taskParameterDtos = parameters.stream().map(TaskParameterDto::new).toList();
+        }
+        if (jobLauncherService.launchJob(timestamp, taskParameterDtos)) {
             return ResponseEntity.ok().build();
         }
         return getEmptyResponseEntity(timestamp);
