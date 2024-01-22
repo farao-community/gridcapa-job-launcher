@@ -47,13 +47,19 @@ class JobLauncherAutoServiceTest {
         Mockito.doNothing().when(restTemplate).put("http://test-uri/2022-04-27T10:10Z/status?status=PENDING", TaskDto.class);
         Mockito.doThrow(RuntimeException.class).when(restTemplate).put("http://test-uri/2022-04-27T10:11Z/status?status=PENDING", TaskDto.class);
         Mockito.doNothing().when(restTemplate).put("http://test-uri/2022-04-27T10:12Z/status?status=PENDING", TaskDto.class);
-        assertTrue(streamBridge.send("consumeTaskDtoUpdate-in-0", MessageBuilder.withPayload(taskDto1)
-                .build()));
+        assertTrue(streamBridge.send(
+            "consumeTaskDtoUpdate-in-0",
+            MessageBuilder.withPayload(taskDto1).build()
+        ));
         /* if we remove the new catch exception block in JobLauncherAutoService.runReadyTasks(), then this next line fails ! */
-        assertTrue(streamBridge.send("consumeTaskDtoUpdate-in-0", MessageBuilder.withPayload(taskDto2)
-                .build()));
+        assertTrue(streamBridge.send(
+            "consumeTaskDtoUpdate-in-0",
+            MessageBuilder.withPayload(taskDto2).build()
+        ));
         /* if we remove the new catch exception block in JobLauncherAutoService.runReadyTasks(), then this next line fails ! */
-        assertTrue(streamBridge.send("consumeTaskDtoUpdate-in-0", MessageBuilder.withPayload(taskDto3)
-                .build()));
+        assertTrue(streamBridge.send(
+            "consumeTaskDtoUpdate-in-0",
+            MessageBuilder.withPayload(taskDto3).build()
+        ));
     }
 }

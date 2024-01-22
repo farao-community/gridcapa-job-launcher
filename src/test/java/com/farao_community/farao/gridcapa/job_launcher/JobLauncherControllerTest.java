@@ -1,6 +1,5 @@
 package com.farao_community.farao.gridcapa.job_launcher;
 
-import com.farao_community.farao.gridcapa.task_manager.api.ParameterDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
