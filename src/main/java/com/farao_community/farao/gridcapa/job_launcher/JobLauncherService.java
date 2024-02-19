@@ -8,7 +8,6 @@ package com.farao_community.farao.gridcapa.job_launcher;
 
 import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskStatus;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -70,9 +69,9 @@ public class JobLauncherService {
 
             if (responseEntity.getStatusCode() == HttpStatus.OK) {
                 if (taskDto.getStatus() == TaskStatus.READY
-                    || taskDto.getStatus() == TaskStatus.SUCCESS
-                    || taskDto.getStatus() == TaskStatus.ERROR
-                    || taskDto.getStatus() == TaskStatus.INTERRUPTED) {
+                        || taskDto.getStatus() == TaskStatus.SUCCESS
+                        || taskDto.getStatus() == TaskStatus.ERROR
+                        || taskDto.getStatus() == TaskStatus.INTERRUPTED) {
                     jobLauncherEventsLogger.info("Task launched on TS {}", taskDto.getTimestamp());
                     restTemplateBuilder.build().put(getUrlToUpdateTaskStatus(timestamp, TaskStatus.PENDING), TaskDto.class);
                     streamBridge.send(RUN_BINDING, Objects.requireNonNull(taskDto));
@@ -114,7 +113,7 @@ public class JobLauncherService {
     private String getUrlToUpdateTaskStatus(String timestamp, TaskStatus taskStatus) {
         String url = jobLauncherConfigurationProperties.getUrl().getTaskManagerTimestampUrl() + timestamp + "/status";
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url)
-            .queryParam("status", taskStatus);
+                .queryParam("status", taskStatus);
         return builder.toUriString();
     }
 }
