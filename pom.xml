@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.farao-community.farao</groupId>
 		<artifactId>farao-parent-ws</artifactId>
-		<version>1.5.0</version>
+		<version>1.7.0</version>
 	</parent>
 	<artifactId>gridcapa-job-launcher</artifactId>
 	<version>1.9.0-SNAPSHOT</version>
@@ -13,9 +13,12 @@
 	<description>Service responsible of launching a task in a gridcapa-based application.</description>
 
 	<properties>
-		<awaitability.version>3.1.6</awaitability.version>
-		<logstash.version>4.9</logstash.version>
-		<task-manager.version>1.21.0</task-manager.version>
+		<!-- TECHNICAL DEPENDENCIES -->
+		<awaitability.version>4.2.0</awaitability.version>
+		<logstash.version>7.3</logstash.version>
+
+		<!-- BUSINESS DEPENDENCIES -->
+		<task-manager.version>1.24.1</task-manager.version>
 	</properties>
 
 	<build>
@@ -28,6 +31,7 @@
 	</build>
 
 	<dependencies>
+		<!-- COMPILE DEPENDENCIES -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
@@ -58,6 +62,8 @@
 			<artifactId>logstash-logback-encoder</artifactId>
 			<version>${logstash.version}</version>
 		</dependency>
+
+		<!-- TEST DEPENDENCIES -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
