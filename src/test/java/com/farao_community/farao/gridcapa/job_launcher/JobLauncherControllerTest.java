@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -51,7 +52,7 @@ class JobLauncherControllerTest {
         Mockito.when(putResponseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
         Mockito.when(putResponseEntity.getBody()).thenReturn(taskDto);
 
-        ResponseEntity<Void> response = jobLauncherController.launchJob("2021-12-09T21:30");
+        ResponseEntity<Void> response = jobLauncherController.launchJob("2021-12-09T21:30", List.of());
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
@@ -65,7 +66,7 @@ class JobLauncherControllerTest {
         Mockito.when(responseEntity.getBody()).thenReturn(taskDto);
         Mockito.when(taskDto.getId()).thenReturn(UUID.randomUUID());
 
-        ResponseEntity<Void> response = jobLauncherController.launchJob("2021-12-09T21:30");
+        ResponseEntity<Void> response = jobLauncherController.launchJob("2021-12-09T21:30", List.of());
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 }

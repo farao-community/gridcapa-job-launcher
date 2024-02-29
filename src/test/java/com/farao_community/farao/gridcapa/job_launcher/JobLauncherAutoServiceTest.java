@@ -40,20 +40,26 @@ class JobLauncherAutoServiceTest {
 
     @Test
     void whenSendMessages() {
-        TaskDto taskDto1 = new TaskDto(UUID.fromString("1fdda469-53e9-4d63-a533-b935cffdd2f6"), OffsetDateTime.parse("2022-04-27T10:10Z"), TaskStatus.READY, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
-        TaskDto taskDto2 = new TaskDto(UUID.fromString("1fdda469-53e9-4d63-a533-b935cffdd2f7"), OffsetDateTime.parse("2022-04-27T10:11Z"), TaskStatus.READY, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
-        TaskDto taskDto3 = new TaskDto(UUID.fromString("1fdda469-53e9-4d63-a533-b935cffdd2f8"), OffsetDateTime.parse("2022-04-27T10:12Z"), TaskStatus.READY, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+        TaskDto taskDto1 = new TaskDto(UUID.fromString("1fdda469-53e9-4d63-a533-b935cffdd2f6"), OffsetDateTime.parse("2022-04-27T10:10Z"), TaskStatus.READY, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+        TaskDto taskDto2 = new TaskDto(UUID.fromString("1fdda469-53e9-4d63-a533-b935cffdd2f7"), OffsetDateTime.parse("2022-04-27T10:11Z"), TaskStatus.READY, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+        TaskDto taskDto3 = new TaskDto(UUID.fromString("1fdda469-53e9-4d63-a533-b935cffdd2f8"), OffsetDateTime.parse("2022-04-27T10:12Z"), TaskStatus.READY, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
         Mockito.doNothing().when(restTemplate).put("http://test-uri/2022-04-27T10:10Z/status?status=PENDING", TaskDto.class);
         Mockito.doThrow(RuntimeException.class).when(restTemplate).put("http://test-uri/2022-04-27T10:11Z/status?status=PENDING", TaskDto.class);
         Mockito.doNothing().when(restTemplate).put("http://test-uri/2022-04-27T10:12Z/status?status=PENDING", TaskDto.class);
-        assertTrue(streamBridge.send("consumeTaskDtoUpdate-in-0", MessageBuilder.withPayload(taskDto1)
-                .build()));
+        assertTrue(streamBridge.send(
+            "consumeTaskDtoUpdate-in-0",
+            MessageBuilder.withPayload(taskDto1).build()
+        ));
         /* if we remove the new catch exception block in JobLauncherAutoService.runReadyTasks(), then this next line fails ! */
-        assertTrue(streamBridge.send("consumeTaskDtoUpdate-in-0", MessageBuilder.withPayload(taskDto2)
-                .build()));
+        assertTrue(streamBridge.send(
+            "consumeTaskDtoUpdate-in-0",
+            MessageBuilder.withPayload(taskDto2).build()
+        ));
         /* if we remove the new catch exception block in JobLauncherAutoService.runReadyTasks(), then this next line fails ! */
-        assertTrue(streamBridge.send("consumeTaskDtoUpdate-in-0", MessageBuilder.withPayload(taskDto3)
-                .build()));
+        assertTrue(streamBridge.send(
+            "consumeTaskDtoUpdate-in-0",
+            MessageBuilder.withPayload(taskDto3).build()
+        ));
     }
 }

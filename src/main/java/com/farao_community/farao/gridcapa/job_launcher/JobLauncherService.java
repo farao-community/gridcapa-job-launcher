@@ -7,6 +7,7 @@
 package com.farao_community.farao.gridcapa.job_launcher;
 
 import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
+import com.farao_community.farao.gridcapa.task_manager.api.TaskParameterDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -55,13 +57,16 @@ public class JobLauncherService {
      * @param timestamp: Task timestamp to be launched.
      * @return False only when the timestamp does not exist. Otherwise, true whether computation is launched or not.
      */
-    public boolean launchJob(String timestamp) {
+    public boolean launchJob(String timestamp, List<TaskParameterDto> parameters) {
         LOGGER.info("Received order to launch task {}", timestamp);
         String requestUrl = getUrlToRetrieveTaskDto(timestamp);
         LOGGER.info("Requesting URL: {}", requestUrl);
         ResponseEntity<TaskDto> responseEntity = restTemplateBuilder.build().getForEntity(requestUrl, TaskDto.class); // NOSONAR
         TaskDto taskDto = responseEntity.getBody();
         if (taskDto != null) {
+            if (!parameters.isEmpty()) {
+                taskDto = new TaskDto(taskDto.getId(), taskDto.getTimestamp(), taskDto.getStatus(), taskDto.getInputs(), taskDto.getOutputs(), taskDto.getProcessEvents(), parameters);
+            }
             String taskId = taskDto.getId().toString();
             // propagate in logs MDC the task id as an extra field to be able to match microservices logs with calculation tasks.
             // This should be done only once, as soon as the information to add in mdc is available.
