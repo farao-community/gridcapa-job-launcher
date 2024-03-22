@@ -7,12 +7,10 @@
 package com.farao_community.farao.gridcapa.job_launcher;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.ConstructorBinding;
 
 /**
  * @author Alexandre Montigny {@literal <alexandre.montigny at rte-france.com>}
  */
-@ConstructorBinding
 @ConfigurationProperties("job-launcher")
 public class JobLauncherConfigurationProperties {
     private final UrlProperties url;
