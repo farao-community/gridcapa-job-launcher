@@ -65,7 +65,7 @@ public class JobLauncherService {
         TaskDto taskDto = responseEntity.getBody();
         if (taskDto != null) {
             if (!parameters.isEmpty()) {
-                taskDto = new TaskDto(taskDto.getId(), taskDto.getTimestamp(), taskDto.getStatus(), taskDto.getInputs(), taskDto.getOutputs(), taskDto.getProcessEvents(), parameters);
+                taskDto = new TaskDto(taskDto.getId(), taskDto.getTimestamp(), taskDto.getStatus(), taskDto.getInputs(), taskDto.getAvailableInputs(), taskDto.getOutputs(), taskDto.getProcessEvents(), taskDto.getRunHistory(), parameters);
             }
             String taskId = taskDto.getId().toString();
             // propagate in logs MDC the task id as an extra field to be able to match microservices logs with calculation tasks.

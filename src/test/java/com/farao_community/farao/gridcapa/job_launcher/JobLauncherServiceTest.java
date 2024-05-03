@@ -49,7 +49,7 @@ class JobLauncherServiceTest {
     @Test
     void launchJobWithRunningTask() {
         RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
-        TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), TaskStatus.RUNNING, null, null, null, null);
+        TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), TaskStatus.RUNNING, null, null, null, null, null, null);
         Mockito.when(restTemplate.getForEntity(Mockito.anyString(), Mockito.eq(TaskDto.class))).thenReturn(ResponseEntity.ok(taskDto));
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
 
@@ -62,7 +62,7 @@ class JobLauncherServiceTest {
     @Test
     void launchJobWithPendingTask() {
         RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
-        TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), TaskStatus.PENDING, null, null, null, null);
+        TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), TaskStatus.PENDING, null, null, null, null, null, null);
         Mockito.when(restTemplate.getForEntity(Mockito.anyString(), Mockito.eq(TaskDto.class))).thenReturn(ResponseEntity.ok(taskDto));
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
 
@@ -97,7 +97,7 @@ class JobLauncherServiceTest {
     @Test
     void stopJobWithPendingTask() {
         RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
-        TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), TaskStatus.PENDING, null, null, null, null);
+        TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), TaskStatus.PENDING, null, null, null, null, null, null);
         Mockito.when(restTemplate.getForEntity(Mockito.anyString(), Mockito.eq(TaskDto.class))).thenReturn(ResponseEntity.ok(taskDto));
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
 

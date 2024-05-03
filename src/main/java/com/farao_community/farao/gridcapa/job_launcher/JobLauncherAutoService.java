@@ -6,6 +6,7 @@
  */
 package com.farao_community.farao.gridcapa.job_launcher;
 
+import com.farao_community.farao.gridcapa.task_manager.api.ProcessFileDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskStatus;
 import org.slf4j.Logger;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Flux;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -50,20 +52,36 @@ public class JobLauncherAutoService {
                 .subscribe(this::runReadyTasks);
     }
 
-    void runReadyTasks(TaskDto taskDtoUpdated) {
+    void runReadyTasks(TaskDto updatedTaskDto) {
         try {
-            if (taskDtoUpdated.getStatus().equals(TaskStatus.READY)) {
+            if (updatedTaskDto.getStatus().equals(TaskStatus.READY)) {
+                if (allTriggerFilesAlreadyUsed(updatedTaskDto)) { // TODO need to check jobLauncherConfigurationProperties.getAutoTriggerFiletypes().isEmpty() as well, or no need?
+                    // If all selected files corresponding to trigger filetypes are linked to some Run in Task's history,
+                    // then the update does not concern a trigger file, so job launcher should do nothing
+                    return;
+                }
+
                 // propagate in logs MDC the task id as an extra field to be able to match microservices logs with calculation tasks.
                 // This should be done only once, as soon as the information to add in mdc is available.
-                MDC.put("gridcapa-task-id", taskDtoUpdated.getId().toString());
-                jobLauncherEventsLogger.info("Task launched on TS {}", taskDtoUpdated.getTimestamp());
-                restTemplateBuilder.build().put(getUrlToUpdateTaskStatusToPending(taskDtoUpdated), TaskDto.class);
-                streamBridge.send(RUN_BINDING, Objects.requireNonNull(taskDtoUpdated));
+                MDC.put("gridcapa-task-id", updatedTaskDto.getId().toString());
+                jobLauncherEventsLogger.info("Task launched on TS {}", updatedTaskDto.getTimestamp());
+                restTemplateBuilder.build().put(getUrlToUpdateTaskStatusToPending(updatedTaskDto), TaskDto.class);
+                streamBridge.send(RUN_BINDING, Objects.requireNonNull(updatedTaskDto));
             }
         } catch (Exception e) {
             /* this exeption block avoids gridcapa export from disconnecting from spring cloud stream !*/
             LOGGER.error(e.getMessage(), e);
         }
+    }
+
+    private boolean allTriggerFilesAlreadyUsed(TaskDto updatedTaskDto) {
+        List<ProcessFileDto> triggerFiles = updatedTaskDto.getInputs().stream()
+                .filter(f -> jobLauncherConfigurationProperties.getAutoTriggerFiletypes().contains(f.getFileType()))
+                .toList();
+
+        return updatedTaskDto.getRunHistory().stream()
+                .flatMap(run -> run.getInputs().stream())
+                .allMatch(triggerFiles::contains); // TODO check if 'contains' works as expected with current definition of 'ProcessFiles::equals' (i.e. default Object's definition)
     }
 
     private String getUrlToUpdateTaskStatusToPending(TaskDto taskDto) {

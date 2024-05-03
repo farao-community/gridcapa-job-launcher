@@ -18,7 +18,7 @@
         <logstash.version>7.3</logstash.version>
 
         <!-- BUSINESS DEPENDENCIES -->
-        <task-manager.version>1.26.1</task-manager.version>
+        <task-manager.version>1.27.0-SNAPSHOT</task-manager.version>
     </properties>
 
     <build>

@@ -10,6 +10,8 @@ job-launcher:
     tag: CORE_VALID
     timezone: CET
   auto: true
+  auto-trigger-filetypes:
+    - RAOREQUEST
 
 spring:
   application:
