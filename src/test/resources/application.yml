@@ -12,6 +12,7 @@ job-launcher:
   auto: true
   auto-trigger-filetypes:
     - RAOREQUEST
+    - CRAC
 
 spring:
   application:

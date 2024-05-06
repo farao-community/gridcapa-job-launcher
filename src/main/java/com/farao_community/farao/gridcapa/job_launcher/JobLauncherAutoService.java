@@ -22,7 +22,9 @@ import reactor.core.publisher.Flux;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * @author Amira Kahya {@literal <amira.kahya at rte-france.com>}
@@ -55,7 +57,8 @@ public class JobLauncherAutoService {
     void runReadyTasks(TaskDto updatedTaskDto) {
         try {
             if (updatedTaskDto.getStatus().equals(TaskStatus.READY)) {
-                if (allTriggerFilesAlreadyUsed(updatedTaskDto)) { // TODO need to check jobLauncherConfigurationProperties.getAutoTriggerFiletypes().isEmpty() as well, or no need?
+                boolean autoTriggerFiletypesDefinedInConfig = !jobLauncherConfigurationProperties.getAutoTriggerFiletypes().isEmpty();
+                if (autoTriggerFiletypesDefinedInConfig && allTriggerFilesAlreadyUsed(updatedTaskDto)) {
                     // If all selected files corresponding to trigger filetypes are linked to some Run in Task's history,
                     // then the update does not concern a trigger file, so job launcher should do nothing
                     return;
@@ -79,9 +82,10 @@ public class JobLauncherAutoService {
                 .filter(f -> jobLauncherConfigurationProperties.getAutoTriggerFiletypes().contains(f.getFileType()))
                 .toList();
 
-        return updatedTaskDto.getRunHistory().stream()
+        Set<ProcessFileDto> filesUsedInPreviousRun = updatedTaskDto.getRunHistory().stream()
                 .flatMap(run -> run.getInputs().stream())
-                .allMatch(triggerFiles::contains); // TODO check if 'contains' works as expected with current definition of 'ProcessFiles::equals' (i.e. default Object's definition)
+                .collect(Collectors.toSet());
+        return filesUsedInPreviousRun.containsAll(triggerFiles);
     }
 
     private String getUrlToUpdateTaskStatusToPending(TaskDto taskDto) {

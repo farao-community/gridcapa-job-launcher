@@ -6,6 +6,9 @@
  */
 package com.farao_community.farao.gridcapa.job_launcher;
 
+import com.farao_community.farao.gridcapa.task_manager.api.ProcessFileDto;
+import com.farao_community.farao.gridcapa.task_manager.api.ProcessFileStatus;
+import com.farao_community.farao.gridcapa.task_manager.api.ProcessRunDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskStatus;
 import org.junit.jupiter.api.Test;
@@ -20,6 +23,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -61,5 +65,78 @@ class JobLauncherAutoServiceTest {
             "consumeTaskDtoUpdate-in-0",
             MessageBuilder.withPayload(taskDto3).build()
         ));
+    }
+
+    @Test
+    void allTriggerFilesUsedInPreviousRun() {
+        ProcessFileDto raoRequestFile = new ProcessFileDto(
+                "path/to/raorequest.xml",
+                "RAOREQUEST",
+                ProcessFileStatus.VALIDATED,
+                "raorequest.xml",
+                OffsetDateTime.now());
+        ProcessFileDto cracFile = new ProcessFileDto(
+                "path/to/crac.xml",
+                "CRAC",
+                ProcessFileStatus.VALIDATED,
+                "crac.xml",
+                OffsetDateTime.now());
+        ProcessRunDto processRunForCrac = new ProcessRunDto(OffsetDateTime.now().minusHours(2), List.of(cracFile));
+        ProcessRunDto processRunForRaoRequest = new ProcessRunDto(OffsetDateTime.now().minusHours(1), List.of(raoRequestFile));
+        TaskDto taskDto = new TaskDto(
+                UUID.randomUUID(),
+                OffsetDateTime.parse("2022-04-27T10:10Z"),
+                TaskStatus.READY,
+                List.of(raoRequestFile, cracFile),
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(processRunForCrac, processRunForRaoRequest),
+                List.of());
+        Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
+
+        streamBridge.send(
+                "consumeTaskDtoUpdate-in-0",
+                MessageBuilder.withPayload(taskDto).build()
+        );
+
+        Mockito.verify(restTemplate, Mockito.times(0))
+                .put("http://test-uri/2022-04-27T10:10Z/status?status=PENDING", TaskDto.class);
+    }
+
+    @Test
+    void someTriggerFilesUsedInPreviousRunButNotAll() {
+        ProcessFileDto raoRequestFile = new ProcessFileDto(
+                "path/to/raorequest.xml",
+                "RAOREQUEST",
+                ProcessFileStatus.VALIDATED,
+                "raorequest.xml",
+                OffsetDateTime.now());
+        ProcessFileDto cracFile = new ProcessFileDto(
+                "path/to/crac.xml",
+                "CRAC",
+                ProcessFileStatus.VALIDATED,
+                "crac.xml",
+                OffsetDateTime.now());
+        ProcessRunDto processRunForRaoRequest = new ProcessRunDto(OffsetDateTime.now().minusHours(1), List.of(raoRequestFile));
+        TaskDto taskDto = new TaskDto(
+                UUID.randomUUID(),
+                OffsetDateTime.parse("2022-04-27T10:10Z"),
+                TaskStatus.READY,
+                List.of(raoRequestFile, cracFile),
+                List.of(),
+                List.of(),
+                List.of(),
+                List.of(processRunForRaoRequest),
+                List.of());
+        Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
+
+        streamBridge.send(
+                "consumeTaskDtoUpdate-in-0",
+                MessageBuilder.withPayload(taskDto).build()
+        );
+
+        Mockito.verify(restTemplate, Mockito.times(1))
+                .put("http://test-uri/2022-04-27T10:10Z/status?status=PENDING", TaskDto.class);
     }
 }
