@@ -13,14 +13,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author Joris Mancini {@literal <joris.mancini at rte-france.com>}
@@ -31,18 +28,19 @@ public class JobLauncherService {
     private static final String RUN_BINDING = "run-task";
     private static final String STOP_BINDING = "stop-task";
 
-    private final JobLauncherConfigurationProperties jobLauncherConfigurationProperties;
-    private final RestTemplateBuilder restTemplateBuilder;
-    private final StreamBridge streamBridge;
+    private final JobLauncherCommonService jobLauncherCommonService;
     private final Logger jobLauncherEventsLogger;
+    private final RestTemplateBuilder restTemplateBuilder;
+    private final String taskManagerTimestampBaseUrl;
 
-    public JobLauncherService(JobLauncherConfigurationProperties jobLauncherConfigurationProperties,
-                              RestTemplateBuilder restTemplateBuilder, StreamBridge streamBridge,
-                              Logger jobLauncherEventsLogger) {
-        this.jobLauncherConfigurationProperties = jobLauncherConfigurationProperties;
-        this.restTemplateBuilder = restTemplateBuilder;
-        this.streamBridge = streamBridge;
+    public JobLauncherService(JobLauncherCommonService jobLauncherCommonService,
+                              JobLauncherConfigurationProperties jobLauncherConfigurationProperties,
+                              Logger jobLauncherEventsLogger,
+                              RestTemplateBuilder restTemplateBuilder) {
+        this.jobLauncherCommonService = jobLauncherCommonService;
         this.jobLauncherEventsLogger = jobLauncherEventsLogger;
+        this.restTemplateBuilder = restTemplateBuilder;
+        this.taskManagerTimestampBaseUrl = jobLauncherConfigurationProperties.getUrl().getTaskManagerTimestampUrl();
     }
 
     /**
@@ -63,30 +61,29 @@ public class JobLauncherService {
         LOGGER.info("Requesting URL: {}", requestUrl);
         ResponseEntity<TaskDto> responseEntity = restTemplateBuilder.build().getForEntity(requestUrl, TaskDto.class); // NOSONAR
         TaskDto taskDto = responseEntity.getBody();
-        if (taskDto != null) {
+        if (responseEntity.getStatusCode() == HttpStatus.OK && taskDto != null) {
             if (!parameters.isEmpty()) {
                 taskDto = new TaskDto(taskDto.getId(), taskDto.getTimestamp(), taskDto.getStatus(), taskDto.getInputs(), taskDto.getAvailableInputs(), taskDto.getOutputs(), taskDto.getProcessEvents(), taskDto.getRunHistory(), parameters);
             }
-            String taskId = taskDto.getId().toString();
-            // propagate in logs MDC the task id as an extra field to be able to match microservices logs with calculation tasks.
+            // Propagate in logs MDC the task id as an extra field to be able to match microservices logs with calculation tasks.
             // This should be done only once, as soon as the information to add in mdc is available.
-            MDC.put("gridcapa-task-id", taskId);
+            MDC.put("gridcapa-task-id", taskDto.getId().toString());
 
-            if (responseEntity.getStatusCode() == HttpStatus.OK) {
-                if (taskDto.getStatus() == TaskStatus.READY
-                        || taskDto.getStatus() == TaskStatus.SUCCESS
-                        || taskDto.getStatus() == TaskStatus.ERROR
-                        || taskDto.getStatus() == TaskStatus.INTERRUPTED) {
-                    jobLauncherEventsLogger.info("Task launched on TS {}", taskDto.getTimestamp());
-                    restTemplateBuilder.build().put(getUrlToUpdateTaskStatus(timestamp, TaskStatus.PENDING), TaskDto.class);
-                    streamBridge.send(RUN_BINDING, Objects.requireNonNull(taskDto));
-                } else {
-                    jobLauncherEventsLogger.warn("Failed to launch task with timestamp {} because it is not ready yet", taskDto.getTimestamp());
-                }
-                return true;
+            if (isTaskReadyToBeLaunched(taskDto)) {
+                jobLauncherCommonService.launchJob(taskDto, RUN_BINDING);
+            } else {
+                jobLauncherEventsLogger.warn("Failed to launch task with timestamp {} because it is not ready yet", taskDto.getTimestamp());
             }
+            return true;
         }
         return false;
+    }
+
+    private static boolean isTaskReadyToBeLaunched(TaskDto taskDto) {
+        return taskDto.getStatus() == TaskStatus.READY
+                || taskDto.getStatus() == TaskStatus.SUCCESS
+                || taskDto.getStatus() == TaskStatus.ERROR
+                || taskDto.getStatus() == TaskStatus.INTERRUPTED;
     }
 
     public boolean stopJob(String timestamp) {
@@ -94,31 +91,23 @@ public class JobLauncherService {
         String requestUrl = getUrlToRetrieveTaskDto(timestamp);
         LOGGER.info("Requesting URL: {}", requestUrl);
         ResponseEntity<TaskDto> responseEntity = restTemplateBuilder.build().getForEntity(requestUrl, TaskDto.class); // NOSONAR
-        if (responseEntity.getStatusCode() == HttpStatus.OK && responseEntity.getBody() != null) {
-            TaskDto taskDto = responseEntity.getBody();
-            String taskId = taskDto.getId().toString();
-            MDC.put("gridcapa-task-id", taskId);
+        TaskDto taskDto = responseEntity.getBody();
+        if (responseEntity.getStatusCode() == HttpStatus.OK && taskDto != null) {
+            // Propagate in logs MDC the task id as an extra field to be able to match microservices logs with calculation tasks.
+            // This should be done only once, as soon as the information to add in mdc is available.
+            MDC.put("gridcapa-task-id", taskDto.getId().toString());
+
             if (taskDto.getStatus() == TaskStatus.RUNNING) {
-                jobLauncherEventsLogger.info("Stopping task with timestamp {}", taskDto.getTimestamp());
-                restTemplateBuilder.build().put(getUrlToUpdateTaskStatus(timestamp, TaskStatus.STOPPING), TaskDto.class);
-                streamBridge.send(STOP_BINDING, taskId);
+                jobLauncherCommonService.stopJob(taskDto, STOP_BINDING);
             } else {
                 jobLauncherEventsLogger.warn("Failed to interrupt task with timestamp {} because it is not running yet", taskDto.getTimestamp());
             }
             return true;
         }
-
         return false;
     }
 
     private String getUrlToRetrieveTaskDto(String timestamp) {
-        return jobLauncherConfigurationProperties.getUrl().getTaskManagerTimestampUrl() + timestamp;
-    }
-
-    private String getUrlToUpdateTaskStatus(String timestamp, TaskStatus taskStatus) {
-        String url = jobLauncherConfigurationProperties.getUrl().getTaskManagerTimestampUrl() + timestamp + "/status";
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url)
-                .queryParam("status", taskStatus);
-        return builder.toUriString();
+        return taskManagerTimestampBaseUrl + timestamp;
     }
 }

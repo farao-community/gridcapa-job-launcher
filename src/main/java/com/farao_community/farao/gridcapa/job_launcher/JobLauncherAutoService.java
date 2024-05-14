@@ -13,15 +13,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
-import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Flux;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -35,16 +31,12 @@ public class JobLauncherAutoService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JobLauncherAutoService.class);
     private static final String RUN_BINDING = "run-task-auto";
-    private final Logger jobLauncherEventsLogger;
-    private final StreamBridge streamBridge;
     private final JobLauncherConfigurationProperties jobLauncherConfigurationProperties;
-    private final RestTemplateBuilder restTemplateBuilder;
+    private final JobLauncherCommonService jobLauncherCommonService;
 
-    public JobLauncherAutoService(Logger jobLauncherEventsLogger, StreamBridge streamBridge, JobLauncherConfigurationProperties jobLauncherConfigurationProperties, RestTemplateBuilder restTemplateBuilder) {
-        this.jobLauncherEventsLogger = jobLauncherEventsLogger;
-        this.streamBridge = streamBridge;
+    public JobLauncherAutoService(JobLauncherConfigurationProperties jobLauncherConfigurationProperties, JobLauncherCommonService jobLauncherCommonService) {
         this.jobLauncherConfigurationProperties = jobLauncherConfigurationProperties;
-        this.restTemplateBuilder = restTemplateBuilder;
+        this.jobLauncherCommonService = jobLauncherCommonService;
     }
 
     @Bean
@@ -64,12 +56,10 @@ public class JobLauncherAutoService {
                     return;
                 }
 
-                // propagate in logs MDC the task id as an extra field to be able to match microservices logs with calculation tasks.
+                // Propagate in logs MDC the task id as an extra field to be able to match microservices logs with calculation tasks.
                 // This should be done only once, as soon as the information to add in mdc is available.
                 MDC.put("gridcapa-task-id", updatedTaskDto.getId().toString());
-                jobLauncherEventsLogger.info("Task launched on TS {}", updatedTaskDto.getTimestamp());
-                restTemplateBuilder.build().put(getUrlToUpdateTaskStatusToPending(updatedTaskDto), TaskDto.class);
-                streamBridge.send(RUN_BINDING, Objects.requireNonNull(updatedTaskDto));
+                jobLauncherCommonService.launchJob(updatedTaskDto, RUN_BINDING);
             }
         } catch (Exception e) {
             /* this exeption block avoids gridcapa export from disconnecting from spring cloud stream !*/
@@ -86,12 +76,5 @@ public class JobLauncherAutoService {
                 .flatMap(run -> run.getInputs().stream())
                 .collect(Collectors.toSet());
         return filesUsedInPreviousRun.containsAll(triggerFiles);
-    }
-
-    private String getUrlToUpdateTaskStatusToPending(TaskDto taskDto) {
-        String url = jobLauncherConfigurationProperties.getUrl().getTaskManagerTimestampUrl() + taskDto.getTimestamp() + "/status";
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url)
-                .queryParam("status", TaskStatus.PENDING);
-        return builder.toUriString();
     }
 }
