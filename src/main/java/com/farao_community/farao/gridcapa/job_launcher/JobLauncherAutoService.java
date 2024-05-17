@@ -48,7 +48,7 @@ public class JobLauncherAutoService {
 
     void runReadyTasks(TaskDto updatedTaskDto) {
         try {
-            if (updatedTaskDto.getStatus().equals(TaskStatus.READY)) {
+            if (updatedTaskDto.getStatus() == TaskStatus.READY) {
                 boolean autoTriggerFiletypesDefinedInConfig = !jobLauncherConfigurationProperties.getAutoTriggerFiletypes().isEmpty();
                 if (autoTriggerFiletypesDefinedInConfig && allTriggerFilesAlreadyUsed(updatedTaskDto)) {
                     // If all selected files corresponding to trigger filetypes are linked to some Run in Task's history,
