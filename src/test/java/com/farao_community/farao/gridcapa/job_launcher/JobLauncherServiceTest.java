@@ -7,9 +7,13 @@
 package com.farao_community.farao.gridcapa.job_launcher;
 
 import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
+import com.farao_community.farao.gridcapa.task_manager.api.TaskParameterDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskStatus;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +35,8 @@ class JobLauncherServiceTest {
     private JobLauncherService service;
 
     @MockBean
+    private JobLauncherCommonService jobLauncherCommonService;
+    @MockBean
     private RestTemplateBuilder restTemplateBuilder;
     @MockBean
     private Logger jobLauncherEventsLogger;
@@ -46,10 +52,11 @@ class JobLauncherServiceTest {
         Assertions.assertFalse(launchJobResult);
     }
 
-    @Test
-    void launchJobWithRunningTask() {
+    @ParameterizedTest
+    @EnumSource(value = TaskStatus.class, names = {"NOT_CREATED", "CREATED", "PENDING", "RUNNING", "STOPPING"})
+    void launchJobWithNotReadyTask(TaskStatus taskStatus) {
         RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
-        TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), TaskStatus.RUNNING, null, null, null, null);
+        TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), taskStatus, null, null, null, null, null, null);
         Mockito.when(restTemplate.getForEntity(Mockito.anyString(), Mockito.eq(TaskDto.class))).thenReturn(ResponseEntity.ok(taskDto));
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
 
@@ -59,17 +66,35 @@ class JobLauncherServiceTest {
         Mockito.verify(jobLauncherEventsLogger, Mockito.times(1)).warn(Mockito.anyString(), Mockito.any(OffsetDateTime.class));
     }
 
-    @Test
-    void launchJobWithPendingTask() {
+    @ParameterizedTest
+    @EnumSource(value = TaskStatus.class, names = {"READY", "SUCCESS", "ERROR", "INTERRUPTED"})
+    void launchJobWithReadyTask(TaskStatus taskStatus) {
         RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
-        TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), TaskStatus.PENDING, null, null, null, null);
+        TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), taskStatus, null, null, null, null, null, null);
         Mockito.when(restTemplate.getForEntity(Mockito.anyString(), Mockito.eq(TaskDto.class))).thenReturn(ResponseEntity.ok(taskDto));
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
 
         boolean launchJobResult = service.launchJob("", List.of());
 
         Assertions.assertTrue(launchJobResult);
-        Mockito.verify(jobLauncherEventsLogger, Mockito.times(1)).warn(Mockito.anyString(), Mockito.any(OffsetDateTime.class));
+        Mockito.verify(jobLauncherCommonService, Mockito.times(1)).launchJob(Mockito.eq(taskDto), Mockito.anyString());
+    }
+
+    @Test
+    void launchJobWithReadyTaskAndParameters() {
+        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), TaskStatus.READY, null, null, null, null, null, null);
+        Mockito.when(restTemplate.getForEntity(Mockito.anyString(), Mockito.eq(TaskDto.class))).thenReturn(ResponseEntity.ok(taskDto));
+        Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
+
+        boolean launchJobResult = service.launchJob("", List.of(new TaskParameterDto("id", "type", "value", "default")));
+
+        ArgumentCaptor<TaskDto> taskDtoCaptor = ArgumentCaptor.forClass(TaskDto.class);
+        Assertions.assertTrue(launchJobResult);
+        Mockito.verify(jobLauncherCommonService, Mockito.times(1)).launchJob(taskDtoCaptor.capture(), Mockito.anyString());
+        Assertions.assertNotNull(taskDtoCaptor.getValue());
+        Assertions.assertNotNull(taskDtoCaptor.getValue().getParameters());
+        Assertions.assertFalse(taskDtoCaptor.getValue().getParameters().isEmpty());
     }
 
     @Test
@@ -78,9 +103,9 @@ class JobLauncherServiceTest {
         Mockito.when(restTemplate.getForEntity(Mockito.anyString(), Mockito.eq(TaskDto.class))).thenReturn(new ResponseEntity<>(HttpStatus.OK));
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
 
-        boolean launchJobResult = service.stopJob("");
+        boolean stopJobResult = service.stopJob("");
 
-        Assertions.assertFalse(launchJobResult);
+        Assertions.assertFalse(stopJobResult);
     }
 
     @Test
@@ -89,21 +114,35 @@ class JobLauncherServiceTest {
         Mockito.when(restTemplate.getForEntity(Mockito.anyString(), Mockito.eq(TaskDto.class))).thenReturn(new ResponseEntity<>(HttpStatus.NOT_FOUND));
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
 
-        boolean launchJobResult = service.stopJob("");
+        boolean stopJobResult = service.stopJob("");
 
-        Assertions.assertFalse(launchJobResult);
+        Assertions.assertFalse(stopJobResult);
     }
 
-    @Test
-    void stopJobWithPendingTask() {
+    @ParameterizedTest
+    @EnumSource(value = TaskStatus.class, names = {"NOT_CREATED", "CREATED", "READY", "PENDING", "SUCCESS", "ERROR", "STOPPING", "INTERRUPTED"})
+    void stopJobWithNotRunningTask(TaskStatus taskStatus) {
         RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
-        TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), TaskStatus.PENDING, null, null, null, null);
+        TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), taskStatus, null, null, null, null, null, null);
         Mockito.when(restTemplate.getForEntity(Mockito.anyString(), Mockito.eq(TaskDto.class))).thenReturn(ResponseEntity.ok(taskDto));
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
 
-        boolean launchJobResult = service.stopJob("");
+        boolean stopJobResult = service.stopJob("");
 
-        Assertions.assertTrue(launchJobResult);
+        Assertions.assertTrue(stopJobResult);
         Mockito.verify(jobLauncherEventsLogger, Mockito.times(1)).warn(Mockito.anyString(), Mockito.any(OffsetDateTime.class));
+    }
+
+    @Test
+    void stopJobWithRunningTask() {
+        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), TaskStatus.RUNNING, null, null, null, null, null, null);
+        Mockito.when(restTemplate.getForEntity(Mockito.anyString(), Mockito.eq(TaskDto.class))).thenReturn(ResponseEntity.ok(taskDto));
+        Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
+
+        boolean stopJobResult = service.stopJob("");
+
+        Assertions.assertTrue(stopJobResult);
+        Mockito.verify(jobLauncherCommonService, Mockito.times(1)).stopJob(Mockito.eq(taskDto), Mockito.anyString());
     }
 }

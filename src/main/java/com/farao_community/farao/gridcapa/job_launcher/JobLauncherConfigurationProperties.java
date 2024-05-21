@@ -8,6 +8,8 @@ package com.farao_community.farao.gridcapa.job_launcher;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.util.List;
+
 /**
  * @author Alexandre Montigny {@literal <alexandre.montigny at rte-france.com>}
  */
@@ -15,10 +17,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class JobLauncherConfigurationProperties {
     private final UrlProperties url;
     private final ProcessProperties process;
+    private final List<String> autoTriggerFiletypes;
 
-    public JobLauncherConfigurationProperties(UrlProperties url, ProcessProperties process) {
+    public JobLauncherConfigurationProperties(UrlProperties url, ProcessProperties process, List<String> autoTriggerFiletypes) {
         this.url = url;
         this.process = process;
+        this.autoTriggerFiletypes = autoTriggerFiletypes;
     }
 
     public UrlProperties getUrl() {
@@ -27,6 +31,10 @@ public class JobLauncherConfigurationProperties {
 
     public ProcessProperties getProcess() {
         return process;
+    }
+
+    public List<String> getAutoTriggerFiletypes() {
+        return autoTriggerFiletypes;
     }
 
     public static final class UrlProperties {

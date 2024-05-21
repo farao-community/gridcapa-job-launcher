@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -22,7 +21,6 @@ import org.springframework.stereotype.Component;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Objects;
 
 /**
  * @author Theo Pascoli {@literal <theo.pascoli at rte-france.com>}
@@ -36,21 +34,18 @@ public class JobLauncherScheduler {
 
     private final DateTimeFormatter timestampFormat = DateTimeFormatter.ofPattern(PATTERN_DATE_FORMAT);
     private final JobLauncherConfigurationProperties jobLauncherConfigurationProperties;
-    private final Logger jobLauncherEventsLogger;
     private final RestTemplateBuilder restTemplateBuilder;
-    private final StreamBridge streamBridge;
+    private final JobLauncherCommonService jobLauncherCommonService;
 
-    public JobLauncherScheduler(JobLauncherConfigurationProperties jobLauncherConfigurationProperties, Logger jobLauncherEventsLogger, RestTemplateBuilder restTemplateBuilder, StreamBridge streamBridge) {
+    public JobLauncherScheduler(JobLauncherConfigurationProperties jobLauncherConfigurationProperties, RestTemplateBuilder restTemplateBuilder, JobLauncherCommonService jobLauncherCommonService) {
         this.jobLauncherConfigurationProperties = jobLauncherConfigurationProperties;
-        this.jobLauncherEventsLogger = jobLauncherEventsLogger;
         this.restTemplateBuilder = restTemplateBuilder;
-        this.streamBridge = streamBridge;
+        this.jobLauncherCommonService = jobLauncherCommonService;
     }
 
     @Scheduled(cron = "0 */${scheduler.frequency-in-minutes} ${scheduler.start-hour}-${scheduler.end-hour} * * *")
-    public void automaticTaskStart() {
-        OffsetDateTime startOfDayTimestamp = getstartingDate();
-
+    void automaticTaskStart() {
+        OffsetDateTime startOfDayTimestamp = getStartingDate();
         String requestUrl = jobLauncherConfigurationProperties.getUrl().getTaskManagerBusinessDateUrl() + timestampFormat.format(startOfDayTimestamp);
         LOGGER.info("Requesting URL: {}", requestUrl);
 
@@ -58,16 +53,13 @@ public class JobLauncherScheduler {
             ResponseEntity<TaskDto[]> responseEntity = restTemplateBuilder.build().getForEntity(requestUrl, TaskDto[].class);
 
             if (responseEntity.getBody() != null && responseEntity.getStatusCode() == HttpStatus.OK) {
-                for (TaskDto task : responseEntity.getBody()) {
-
-                    String taskId = task.getId().toString();
-                    // propagate in logs MDC the task id as an extra field to be able to match microservices logs with calculation tasks.
+                for (TaskDto taskDto : responseEntity.getBody()) {
+                    // Propagate in logs MDC the task id as an extra field to be able to match microservices logs with calculation tasks.
                     // This should be done only once, as soon as the information to add in mdc is available.
-                    MDC.put("gridcapa-task-id", taskId);
+                    MDC.put("gridcapa-task-id", taskDto.getId().toString());
 
-                    if (task.getStatus() == TaskStatus.READY) {
-                        jobLauncherEventsLogger.info("Task launched on TS {}", task.getTimestamp());
-                        streamBridge.send(RUN_BINDING, Objects.requireNonNull(task));
+                    if (taskDto.getStatus() == TaskStatus.READY) {
+                        jobLauncherCommonService.launchJob(taskDto, RUN_BINDING);
                     }
                 }
             }
@@ -76,7 +68,7 @@ public class JobLauncherScheduler {
         }
     }
 
-    private OffsetDateTime getstartingDate() {
+    private OffsetDateTime getStartingDate() {
         return OffsetDateTime.now(ZoneId.of(jobLauncherConfigurationProperties.getProcess().getTimezone())).plusDays(findDaysToAdd());
     }
 
