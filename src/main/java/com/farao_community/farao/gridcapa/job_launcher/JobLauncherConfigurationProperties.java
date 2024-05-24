@@ -37,39 +37,7 @@ public class JobLauncherConfigurationProperties {
         return autoTriggerFiletypes;
     }
 
-    public static final class UrlProperties {
-        private final String taskManagerTimestampUrl;
-        private final String taskManagerBusinessDateUrl;
+    public record UrlProperties(String taskManagerTimestampUrl, String taskManagerBusinessDateUrl) { }
 
-        public UrlProperties(String taskManagerTimestampUrl, String taskManagerBusinessDateUrl) {
-            this.taskManagerTimestampUrl = taskManagerTimestampUrl;
-            this.taskManagerBusinessDateUrl = taskManagerBusinessDateUrl;
-        }
-
-        public String getTaskManagerTimestampUrl() {
-            return taskManagerTimestampUrl;
-        }
-
-        public String getTaskManagerBusinessDateUrl() {
-            return taskManagerBusinessDateUrl;
-        }
-    }
-
-    public static final class ProcessProperties {
-        private final String tag;
-        private final String timezone;
-
-        public ProcessProperties(String tag, String timezone) {
-            this.tag = tag;
-            this.timezone = timezone;
-        }
-
-        public String getTag() {
-            return tag;
-        }
-
-        public String getTimezone() {
-            return timezone;
-        }
-    }
+    public record ProcessProperties(String tag, String timezone, int daysToAdd) { }
 }

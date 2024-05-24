@@ -40,7 +40,7 @@ public class JobLauncherService {
         this.jobLauncherCommonService = jobLauncherCommonService;
         this.jobLauncherEventsLogger = jobLauncherEventsLogger;
         this.restTemplateBuilder = restTemplateBuilder;
-        this.taskManagerTimestampBaseUrl = jobLauncherConfigurationProperties.getUrl().getTaskManagerTimestampUrl();
+        this.taskManagerTimestampBaseUrl = jobLauncherConfigurationProperties.getUrl().taskManagerTimestampUrl();
     }
 
     /**

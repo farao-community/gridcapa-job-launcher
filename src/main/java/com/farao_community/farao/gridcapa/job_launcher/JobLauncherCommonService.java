@@ -27,7 +27,7 @@ public class JobLauncherCommonService {
         this.jobLauncherEventsLogger = jobLauncherEventsLogger;
         this.restTemplateBuilder = restTemplateBuilder;
         this.streamBridge = streamBridge;
-        this.taskManagerTimestampBaseUrl = jobLauncherConfigurationProperties.getUrl().getTaskManagerTimestampUrl();
+        this.taskManagerTimestampBaseUrl = jobLauncherConfigurationProperties.getUrl().taskManagerTimestampUrl();
     }
 
     public void launchJob(TaskDto taskDto, String runBinding) {
