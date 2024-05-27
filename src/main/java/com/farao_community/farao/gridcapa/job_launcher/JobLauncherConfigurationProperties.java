@@ -14,30 +14,9 @@ import java.util.List;
  * @author Alexandre Montigny {@literal <alexandre.montigny at rte-france.com>}
  */
 @ConfigurationProperties("job-launcher")
-public class JobLauncherConfigurationProperties {
-    private final UrlProperties url;
-    private final ProcessProperties process;
-    private final List<String> autoTriggerFiletypes;
-
-    public JobLauncherConfigurationProperties(UrlProperties url, ProcessProperties process, List<String> autoTriggerFiletypes) {
-        this.url = url;
-        this.process = process;
-        this.autoTriggerFiletypes = autoTriggerFiletypes;
-    }
-
-    public UrlProperties getUrl() {
-        return url;
-    }
-
-    public ProcessProperties getProcess() {
-        return process;
-    }
-
-    public List<String> getAutoTriggerFiletypes() {
-        return autoTriggerFiletypes;
-    }
+public record JobLauncherConfigurationProperties(UrlProperties url, ProcessProperties process, List<String> autoTriggerFiletypes) {
 
     public record UrlProperties(String taskManagerTimestampUrl, String taskManagerBusinessDateUrl) { }
 
-    public record ProcessProperties(String tag, String timezone, int daysToAdd) { }
+    public record ProcessProperties(String timezone, int daysToAdd) { }
 }

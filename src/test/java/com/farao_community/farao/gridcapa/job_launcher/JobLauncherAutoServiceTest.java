@@ -97,7 +97,7 @@ class JobLauncherAutoServiceTest {
                 List.of(),
                 List.of(processRunForCrac, processRunForRaoRequest),
                 List.of());
-        Mockito.when(jobLauncherConfigurationProperties.getAutoTriggerFiletypes()).thenReturn(List.of("RAOREQUEST", "CRAC"));
+        Mockito.when(jobLauncherConfigurationProperties.autoTriggerFiletypes()).thenReturn(List.of("RAOREQUEST", "CRAC"));
 
         service.runReadyTasks(taskDto);
 
@@ -129,7 +129,7 @@ class JobLauncherAutoServiceTest {
                 List.of(),
                 List.of(processRunForRaoRequest),
                 List.of());
-        Mockito.when(jobLauncherConfigurationProperties.getAutoTriggerFiletypes()).thenReturn(List.of("RAOREQUEST", "CRAC"));
+        Mockito.when(jobLauncherConfigurationProperties.autoTriggerFiletypes()).thenReturn(List.of("RAOREQUEST", "CRAC"));
 
         service.runReadyTasks(taskDto);
 
@@ -162,7 +162,7 @@ class JobLauncherAutoServiceTest {
                 List.of(),
                 List.of(processRunForCrac, processRunForRaoRequest),
                 List.of());
-        Mockito.when(jobLauncherConfigurationProperties.getAutoTriggerFiletypes()).thenReturn(List.of());
+        Mockito.when(jobLauncherConfigurationProperties.autoTriggerFiletypes()).thenReturn(List.of());
 
         service.runReadyTasks(taskDto);
 

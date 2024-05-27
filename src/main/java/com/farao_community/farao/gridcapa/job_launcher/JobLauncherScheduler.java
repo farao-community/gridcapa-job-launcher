@@ -46,7 +46,7 @@ public class JobLauncherScheduler {
     @Scheduled(cron = "0 */${scheduler.frequency-in-minutes} ${scheduler.start-hour}-${scheduler.end-hour} * * *")
     void automaticTaskStart() {
         OffsetDateTime startOfDayTimestamp = getStartingDate();
-        String requestUrl = jobLauncherConfigurationProperties.getUrl().taskManagerBusinessDateUrl() + timestampFormat.format(startOfDayTimestamp);
+        String requestUrl = jobLauncherConfigurationProperties.url().taskManagerBusinessDateUrl() + timestampFormat.format(startOfDayTimestamp);
         LOGGER.info("Requesting URL: {}", requestUrl);
 
         try {
@@ -69,7 +69,7 @@ public class JobLauncherScheduler {
     }
 
     private OffsetDateTime getStartingDate() {
-        return OffsetDateTime.now(ZoneId.of(jobLauncherConfigurationProperties.getProcess().timezone()))
-                .plusDays(jobLauncherConfigurationProperties.getProcess().daysToAdd());
+        return OffsetDateTime.now(ZoneId.of(jobLauncherConfigurationProperties.process().timezone()))
+                .plusDays(jobLauncherConfigurationProperties.process().daysToAdd());
     }
 }
