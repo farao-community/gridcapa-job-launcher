@@ -14,62 +14,9 @@ import java.util.List;
  * @author Alexandre Montigny {@literal <alexandre.montigny at rte-france.com>}
  */
 @ConfigurationProperties("job-launcher")
-public class JobLauncherConfigurationProperties {
-    private final UrlProperties url;
-    private final ProcessProperties process;
-    private final List<String> autoTriggerFiletypes;
+public record JobLauncherConfigurationProperties(UrlProperties url, ProcessProperties process, List<String> autoTriggerFiletypes) {
 
-    public JobLauncherConfigurationProperties(UrlProperties url, ProcessProperties process, List<String> autoTriggerFiletypes) {
-        this.url = url;
-        this.process = process;
-        this.autoTriggerFiletypes = autoTriggerFiletypes;
-    }
+    public record UrlProperties(String taskManagerTimestampUrl, String taskManagerBusinessDateUrl) { }
 
-    public UrlProperties getUrl() {
-        return url;
-    }
-
-    public ProcessProperties getProcess() {
-        return process;
-    }
-
-    public List<String> getAutoTriggerFiletypes() {
-        return autoTriggerFiletypes;
-    }
-
-    public static final class UrlProperties {
-        private final String taskManagerTimestampUrl;
-        private final String taskManagerBusinessDateUrl;
-
-        public UrlProperties(String taskManagerTimestampUrl, String taskManagerBusinessDateUrl) {
-            this.taskManagerTimestampUrl = taskManagerTimestampUrl;
-            this.taskManagerBusinessDateUrl = taskManagerBusinessDateUrl;
-        }
-
-        public String getTaskManagerTimestampUrl() {
-            return taskManagerTimestampUrl;
-        }
-
-        public String getTaskManagerBusinessDateUrl() {
-            return taskManagerBusinessDateUrl;
-        }
-    }
-
-    public static final class ProcessProperties {
-        private final String tag;
-        private final String timezone;
-
-        public ProcessProperties(String tag, String timezone) {
-            this.tag = tag;
-            this.timezone = timezone;
-        }
-
-        public String getTag() {
-            return tag;
-        }
-
-        public String getTimezone() {
-            return timezone;
-        }
-    }
+    public record ProcessProperties(String timezone, int daysToAdd) { }
 }

@@ -49,7 +49,7 @@ public class JobLauncherAutoService {
     void runReadyTasks(TaskDto updatedTaskDto) {
         try {
             if (updatedTaskDto.getStatus() == TaskStatus.READY) {
-                boolean autoTriggerFiletypesDefinedInConfig = !jobLauncherConfigurationProperties.getAutoTriggerFiletypes().isEmpty();
+                boolean autoTriggerFiletypesDefinedInConfig = !jobLauncherConfigurationProperties.autoTriggerFiletypes().isEmpty();
                 if (autoTriggerFiletypesDefinedInConfig && allTriggerFilesAlreadyUsed(updatedTaskDto)) {
                     // If all selected files corresponding to trigger filetypes are linked to some Run in Task's history,
                     // then the update does not concern a trigger file, so job launcher should do nothing
@@ -69,7 +69,7 @@ public class JobLauncherAutoService {
 
     private boolean allTriggerFilesAlreadyUsed(TaskDto updatedTaskDto) {
         List<ProcessFileDto> triggerFiles = updatedTaskDto.getInputs().stream()
-                .filter(f -> jobLauncherConfigurationProperties.getAutoTriggerFiletypes().contains(f.getFileType()))
+                .filter(f -> jobLauncherConfigurationProperties.autoTriggerFiletypes().contains(f.getFileType()))
                 .toList();
 
         Set<ProcessFileDto> filesUsedInPreviousRun = updatedTaskDto.getRunHistory().stream()
