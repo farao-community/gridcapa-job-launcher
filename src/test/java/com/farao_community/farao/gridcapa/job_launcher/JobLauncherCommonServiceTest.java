@@ -6,6 +6,7 @@
  */
 package com.farao_community.farao.gridcapa.job_launcher;
 
+import com.farao_community.farao.gridcapa.task_manager.api.ProcessFileDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskStatus;
 import org.junit.jupiter.api.Test;
@@ -47,10 +48,11 @@ class JobLauncherCommonServiceTest {
         String binding = "TEST_BINDING";
         String id = "1fdda469-53e9-4d63-a533-b935cffdd2f6";
         String timestamp = "2022-04-27T10:10Z";
+        ArrayList<ProcessFileDto> inputs = new ArrayList<>();
         TaskDto taskDto = new TaskDto(UUID.fromString(id),
                 OffsetDateTime.parse(timestamp),
                 TaskStatus.READY,
-                new ArrayList<>(),
+                inputs,
                 new ArrayList<>(),
                 new ArrayList<>(),
                 new ArrayList<>(),
@@ -62,7 +64,7 @@ class JobLauncherCommonServiceTest {
         service.launchJob(taskDto, binding);
 
         verify(restTemplate, times(1)).put(TEST_URL + timestamp + "/status?status=PENDING", TaskDto.class);
-        verify(restTemplate, times(1)).put(TEST_URL + timestamp + "/runHistory", TaskDto.class);
+        verify(restTemplate, times(1)).put(TEST_URL + timestamp + "/runHistory", inputs);
         verify(streamBridge, times(1)).send(binding, taskDto);
         verifyNoMoreInteractions(restTemplate);
     }

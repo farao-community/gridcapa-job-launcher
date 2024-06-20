@@ -34,7 +34,7 @@ public class JobLauncherCommonService {
         String timestamp = taskDto.getTimestamp().toString();
         jobLauncherEventsLogger.info("Task launched on TS {}", timestamp);
         restTemplateBuilder.build().put(getUrlToUpdateTaskStatus(timestamp, TaskStatus.PENDING), TaskDto.class);
-        restTemplateBuilder.build().put(getUrlToAddNewRunInTaskHistory(timestamp), TaskDto.class);
+        restTemplateBuilder.build().put(getUrlToAddNewRunInTaskHistory(timestamp), taskDto.getInputs());
         streamBridge.send(runBinding, taskDto);
     }
 
