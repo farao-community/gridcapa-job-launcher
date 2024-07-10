@@ -2,6 +2,7 @@ logback:
   amqp:
     exchange: task-manager-logs-exchange
     routing-key: "#"
+
 job-launcher:
   url:
     task-manager-timestamp-url: http://test-uri/

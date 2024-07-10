@@ -1,51 +1,13 @@
-logback:
-  amqp:
-    exchange: task-manager-logs-exchange
-    routing-key: "#"
 spring:
-  application:
-    name: gridcapa-job-launcher
-  rabbitmq:
-    host: localhost
-    username: gridcapa
-    password: gridcapa
-    port: 5672
   cloud:
-    stream:
-      default:
-        group: cse-d2cc-job-launcher
-      bindings:
-        run-task:
-          destination: cse-d2cc-run-task
-        run-task-auto:
-          destination: cse-d2cc-run-task-auto
-        stop-task:
-          destination: cse-d2cc-stop-task
-        consumeTaskDtoUpdate-in-0:
-          destination: cse-cc-export-task-updated
-      rabbit:
-        default:
-          consumer:
-            auto-bind-dlq: true
-            max-attempts: 1
-        bindings:
-          consumeTaskDtoUpdate-in-0:
-            consumer:
-              binding-routing-key: input
     function:
       definition: consumeTaskDtoUpdate
 
 job-launcher:
   auto: false
-  url:
-    task-manager-timestamp-url: http://localhost:8080/tasks/
-    task-manager-business-date-url: http://localhost:8080/tasks/businessdate/
   process:
     timezone: CET
     days-to-add: 0
 
 scheduler:
-  enable: true
-  start-hour: 0
-  end-hour: 20
-  frequency-in-minutes: 1
+  enable: false
