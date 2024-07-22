@@ -103,7 +103,7 @@ class JobLauncherServiceTest {
         Mockito.when(restTemplate.getForEntity(Mockito.anyString(), Mockito.eq(TaskDto.class))).thenReturn(new ResponseEntity<>(HttpStatus.OK));
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
 
-        boolean stopJobResult = service.stopJob("");
+        boolean stopJobResult = service.stopJob("", UUID.randomUUID());
 
         Assertions.assertFalse(stopJobResult);
     }
@@ -114,20 +114,20 @@ class JobLauncherServiceTest {
         Mockito.when(restTemplate.getForEntity(Mockito.anyString(), Mockito.eq(TaskDto.class))).thenReturn(new ResponseEntity<>(HttpStatus.NOT_FOUND));
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
 
-        boolean stopJobResult = service.stopJob("");
+        boolean stopJobResult = service.stopJob("", UUID.randomUUID());
 
         Assertions.assertFalse(stopJobResult);
     }
 
     @ParameterizedTest
-    @EnumSource(value = TaskStatus.class, names = {"NOT_CREATED", "CREATED", "READY", "PENDING", "SUCCESS", "ERROR", "STOPPING", "INTERRUPTED"})
+    @EnumSource(value = TaskStatus.class, names = {"NOT_CREATED", "CREATED", "READY", "SUCCESS", "ERROR", "STOPPING", "INTERRUPTED"})
     void stopJobWithNotRunningTask(TaskStatus taskStatus) {
         RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
         TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), taskStatus, null, null, null, null, null, null);
         Mockito.when(restTemplate.getForEntity(Mockito.anyString(), Mockito.eq(TaskDto.class))).thenReturn(ResponseEntity.ok(taskDto));
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
 
-        boolean stopJobResult = service.stopJob("");
+        boolean stopJobResult = service.stopJob("", UUID.randomUUID());
 
         Assertions.assertTrue(stopJobResult);
         Mockito.verify(jobLauncherEventsLogger, Mockito.times(1)).warn(Mockito.anyString(), Mockito.any(OffsetDateTime.class));
@@ -139,10 +139,10 @@ class JobLauncherServiceTest {
         TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.now(), TaskStatus.RUNNING, null, null, null, null, null, null);
         Mockito.when(restTemplate.getForEntity(Mockito.anyString(), Mockito.eq(TaskDto.class))).thenReturn(ResponseEntity.ok(taskDto));
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
-
-        boolean stopJobResult = service.stopJob("");
+        UUID runId = UUID.randomUUID();
+        boolean stopJobResult = service.stopJob("", runId);
 
         Assertions.assertTrue(stopJobResult);
-        Mockito.verify(jobLauncherCommonService, Mockito.times(1)).stopJob(Mockito.eq(taskDto), Mockito.anyString());
+        Mockito.verify(jobLauncherCommonService, Mockito.times(1)).stopJob(Mockito.eq(runId), Mockito.eq(taskDto), Mockito.anyString());
     }
 }
