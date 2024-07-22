@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Joris Mancini {@literal <joris.mancini at rte-france.com>}
@@ -86,7 +87,7 @@ public class JobLauncherService {
                 || taskDto.getStatus() == TaskStatus.INTERRUPTED;
     }
 
-    public boolean stopJob(String timestamp) {
+    public boolean stopJob(String timestamp, UUID runId) {
         LOGGER.info("Received order to interrupt task {}", timestamp);
         String requestUrl = getUrlToRetrieveTaskDto(timestamp);
         LOGGER.info("Requesting URL: {}", requestUrl);
@@ -97,10 +98,10 @@ public class JobLauncherService {
             // This should be done only once, as soon as the information to add in mdc is available.
             MDC.put("gridcapa-task-id", taskDto.getId().toString());
 
-            if (taskDto.getStatus() == TaskStatus.RUNNING) {
-                jobLauncherCommonService.stopJob(taskDto, STOP_BINDING);
+            if (taskDto.getStatus() == TaskStatus.RUNNING || taskDto.getStatus() == TaskStatus.PENDING) {
+                jobLauncherCommonService.stopJob(runId, taskDto, STOP_BINDING);
             } else {
-                jobLauncherEventsLogger.warn("Failed to interrupt task with timestamp {} because it is not running yet", taskDto.getTimestamp());
+                jobLauncherEventsLogger.warn("Failed to interrupt task with timestamp {} because it is not pending or running yet", taskDto.getTimestamp());
             }
             return true;
         }

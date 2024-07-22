@@ -7,6 +7,7 @@ job-launcher:
   url:
     task-manager-timestamp-url: http://test-uri/
     task-manager-business-date-url: http://test-uri/
+    interrupt-run-url: http://test-uri/
   process:
     timezone: CET
     days-to-add: 0

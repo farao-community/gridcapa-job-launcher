@@ -16,7 +16,7 @@ import java.util.List;
 @ConfigurationProperties("job-launcher")
 public record JobLauncherConfigurationProperties(UrlProperties url, ProcessProperties process, List<String> autoTriggerFiletypes) {
 
-    public record UrlProperties(String taskManagerTimestampUrl, String taskManagerBusinessDateUrl) { }
+    public record UrlProperties(String taskManagerTimestampUrl, String taskManagerBusinessDateUrl, String interruptRunUrl) { }
 
     public record ProcessProperties(String timezone, int daysToAdd) { }
 }

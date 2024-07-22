@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Alexandre Montigny {@literal <alexandre.montigny at rte-france.com>}
@@ -43,9 +44,9 @@ public class JobLauncherController {
         return getEmptyResponseEntity(timestamp);
     }
 
-    @PostMapping(value = "/stop/{timestamp}")
-    public ResponseEntity<Void> stopJob(@PathVariable String timestamp) {
-        if (jobLauncherService.stopJob(timestamp)) {
+    @PostMapping(value = "/stop/{timestamp}/{runId}")
+    public ResponseEntity<Void> stopJob(@PathVariable String timestamp, @PathVariable UUID runId) {
+        if (jobLauncherService.stopJob(timestamp, runId)) {
             return ResponseEntity.ok().build();
         }
         return getEmptyResponseEntity(timestamp);

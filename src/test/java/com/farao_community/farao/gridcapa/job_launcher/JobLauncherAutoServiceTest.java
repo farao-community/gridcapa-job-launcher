@@ -78,15 +78,17 @@ class JobLauncherAutoServiceTest {
                 "RAOREQUEST",
                 ProcessFileStatus.VALIDATED,
                 "raorequest.xml",
+                "docId1",
                 OffsetDateTime.now());
         ProcessFileDto cracFile = new ProcessFileDto(
                 "path/to/crac.xml",
                 "CRAC",
                 ProcessFileStatus.VALIDATED,
                 "crac.xml",
+                "docId2",
                 OffsetDateTime.now());
-        ProcessRunDto processRunForCrac = new ProcessRunDto(OffsetDateTime.now().minusHours(2), List.of(cracFile));
-        ProcessRunDto processRunForRaoRequest = new ProcessRunDto(OffsetDateTime.now().minusHours(1), List.of(raoRequestFile));
+        ProcessRunDto processRunForCrac = new ProcessRunDto(UUID.randomUUID(), OffsetDateTime.now().minusHours(2), List.of(cracFile));
+        ProcessRunDto processRunForRaoRequest = new ProcessRunDto(UUID.randomUUID(), OffsetDateTime.now().minusHours(1), List.of(raoRequestFile));
         TaskDto taskDto = new TaskDto(
                 UUID.randomUUID(),
                 OffsetDateTime.parse("2022-04-27T10:10Z"),
@@ -111,14 +113,16 @@ class JobLauncherAutoServiceTest {
                 "RAOREQUEST",
                 ProcessFileStatus.VALIDATED,
                 "raorequest.xml",
+                "docId1",
                 OffsetDateTime.now());
         ProcessFileDto cracFile = new ProcessFileDto(
                 "path/to/crac.xml",
                 "CRAC",
                 ProcessFileStatus.VALIDATED,
                 "crac.xml",
+                "docId2",
                 OffsetDateTime.now());
-        ProcessRunDto processRunForRaoRequest = new ProcessRunDto(OffsetDateTime.now().minusHours(1), List.of(raoRequestFile));
+        ProcessRunDto processRunForRaoRequest = new ProcessRunDto(UUID.randomUUID(), OffsetDateTime.now().minusHours(1), List.of(raoRequestFile));
         TaskDto taskDto = new TaskDto(
                 UUID.randomUUID(),
                 OffsetDateTime.parse("2022-04-27T10:10Z"),
@@ -143,15 +147,17 @@ class JobLauncherAutoServiceTest {
                 "RAOREQUEST",
                 ProcessFileStatus.VALIDATED,
                 "raorequest.xml",
+                "docId1",
                 OffsetDateTime.now());
         ProcessFileDto cracFile = new ProcessFileDto(
                 "path/to/crac.xml",
                 "CRAC",
                 ProcessFileStatus.VALIDATED,
                 "crac.xml",
+                "docId2",
                 OffsetDateTime.now());
-        ProcessRunDto processRunForCrac = new ProcessRunDto(OffsetDateTime.now().minusHours(2), List.of(cracFile));
-        ProcessRunDto processRunForRaoRequest = new ProcessRunDto(OffsetDateTime.now().minusHours(1), List.of(raoRequestFile));
+        ProcessRunDto processRunForCrac = new ProcessRunDto(UUID.randomUUID(), OffsetDateTime.now().minusHours(2), List.of(cracFile));
+        ProcessRunDto processRunForRaoRequest = new ProcessRunDto(UUID.randomUUID(), OffsetDateTime.now().minusHours(1), List.of(raoRequestFile));
         TaskDto taskDto = new TaskDto(
                 UUID.randomUUID(),
                 OffsetDateTime.parse("2022-04-27T10:10Z"),

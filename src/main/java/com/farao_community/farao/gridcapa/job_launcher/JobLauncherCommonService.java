@@ -11,7 +11,11 @@ import com.farao_community.farao.gridcapa.task_manager.api.TaskStatus;
 import org.slf4j.Logger;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.stream.function.StreamBridge;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 /**
  * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
@@ -22,27 +26,35 @@ public class JobLauncherCommonService {
     private final RestTemplateBuilder restTemplateBuilder;
     private final StreamBridge streamBridge;
     private final String taskManagerTimestampBaseUrl;
+    private final String interruptionServerBaseUrl;
 
     public JobLauncherCommonService(JobLauncherConfigurationProperties jobLauncherConfigurationProperties, Logger jobLauncherEventsLogger, RestTemplateBuilder restTemplateBuilder, StreamBridge streamBridge) {
         this.jobLauncherEventsLogger = jobLauncherEventsLogger;
         this.restTemplateBuilder = restTemplateBuilder;
         this.streamBridge = streamBridge;
         this.taskManagerTimestampBaseUrl = jobLauncherConfigurationProperties.url().taskManagerTimestampUrl();
+        this.interruptionServerBaseUrl = jobLauncherConfigurationProperties.url().interruptRunUrl();
     }
 
     public void launchJob(TaskDto taskDto, String runBinding) {
         String timestamp = taskDto.getTimestamp().toString();
-        jobLauncherEventsLogger.info("Task launched on TS {}", timestamp);
-        restTemplateBuilder.build().put(getUrlToUpdateTaskStatus(timestamp, TaskStatus.PENDING), TaskDto.class);
         restTemplateBuilder.build().put(getUrlToAddNewRunInTaskHistory(timestamp), taskDto.getInputs());
-        streamBridge.send(runBinding, taskDto);
+        ResponseEntity<TaskDto> responseEntity = restTemplateBuilder.build().getForEntity(getUrlToGetTask(timestamp), TaskDto.class);
+        restTemplateBuilder.build().put(getUrlToUpdateTaskStatus(timestamp, TaskStatus.PENDING), TaskDto.class);
+        if (responseEntity.getBody() != null && responseEntity.getStatusCode() == HttpStatus.OK) {
+            jobLauncherEventsLogger.info("Task launched on TS {}", timestamp);
+            streamBridge.send(runBinding, responseEntity.getBody());
+        } else {
+            jobLauncherEventsLogger.warn("Failed to launch task on TS {} because it is not available", taskDto.getTimestamp());
+        }
     }
 
-    public void stopJob(TaskDto taskDto, String stopBinding) {
+    public void stopJob(UUID runId, TaskDto taskDto, String stopBinding) {
         String timestamp = taskDto.getTimestamp().toString();
         jobLauncherEventsLogger.info("Stopping task with timestamp {}", timestamp);
-        restTemplateBuilder.build().put(getUrlToUpdateTaskStatus(timestamp, TaskStatus.STOPPING), TaskDto.class);
+        restTemplateBuilder.build().put(getUrlToInterruptRun(taskDto, runId), null);
         streamBridge.send(stopBinding, taskDto.getId().toString());
+        restTemplateBuilder.build().put(getUrlToUpdateTaskStatus(timestamp, TaskStatus.STOPPING), TaskDto.class);
     }
 
     private String getUrlToUpdateTaskStatus(String timestamp, TaskStatus taskStatus) {
@@ -51,5 +63,13 @@ public class JobLauncherCommonService {
 
     private String getUrlToAddNewRunInTaskHistory(String timestamp) {
         return taskManagerTimestampBaseUrl + timestamp + "/runHistory";
+    }
+
+    private String getUrlToGetTask(String timestamp) {
+        return taskManagerTimestampBaseUrl + timestamp;
+    }
+
+    private String getUrlToInterruptRun(TaskDto taskDto, UUID runId) {
+        return interruptionServerBaseUrl + taskDto.getId() + "?runId=" + runId;
     }
 }
