@@ -57,13 +57,8 @@ public class JobLauncherService {
      * @return False only when the timestamp does not exist. Otherwise, true whether computation is launched or not.
      */
     public boolean launchJob(String timestamp, List<TaskParameterDto> parameters) {
-        String sanifiedTimestamp = timestamp;
-        if (sanifiedTimestamp != null) {
-            sanifiedTimestamp = sanifiedTimestamp.replaceAll("[\n\r]", "_");
-            LOGGER.info("Received order to launch task {}", sanifiedTimestamp);
-        } else {
-            LOGGER.info("Received order to launch task null");
-        }
+        String sanifiedTimestamp = sanifyStringForLogging(timestamp);
+        LOGGER.info("Received order to launch task {}", sanifiedTimestamp);
         String requestUrl = getUrlToRetrieveTaskDto(sanifiedTimestamp);
         LOGGER.info("Requesting URL: {}", requestUrl);
         ResponseEntity<TaskDto> responseEntity = restTemplateBuilder.build().getForEntity(requestUrl, TaskDto.class); // NOSONAR
@@ -94,13 +89,8 @@ public class JobLauncherService {
     }
 
     public boolean stopJob(String timestamp, UUID runId) {
-        String sanifiedTimestamp = timestamp;
-        if (sanifiedTimestamp != null) {
-            sanifiedTimestamp = sanifiedTimestamp.replaceAll("[\n\r]", "_");
-            LOGGER.info("Received order to interrupt task {}", sanifiedTimestamp);
-        } else {
-            LOGGER.info("Received order to interrupt task null");
-        }
+        final String sanifiedTimestamp = sanifyStringForLogging(timestamp);
+        LOGGER.info("Received order to interrupt task {}", sanifiedTimestamp);
         String requestUrl = getUrlToRetrieveTaskDto(sanifiedTimestamp);
         LOGGER.info("Requesting URL: {}", requestUrl);
         ResponseEntity<TaskDto> responseEntity = restTemplateBuilder.build().getForEntity(requestUrl, TaskDto.class); // NOSONAR
@@ -122,5 +112,13 @@ public class JobLauncherService {
 
     private String getUrlToRetrieveTaskDto(String timestamp) {
         return taskManagerTimestampBaseUrl + timestamp;
+    }
+
+    private String sanifyStringForLogging(String input) {
+        if (input != null) {
+            return input.replaceAll("[\n\r]", "_");
+        } else {
+            return null;
+        }
     }
 }
