@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Joris Mancini {@literal <joris.mancini at rte-france.com>}
@@ -56,8 +57,9 @@ public class JobLauncherService {
      * @return False only when the timestamp does not exist. Otherwise, true whether computation is launched or not.
      */
     public boolean launchJob(String timestamp, List<TaskParameterDto> parameters) {
-        LOGGER.info("Received order to launch task {}", timestamp);
-        String requestUrl = getUrlToRetrieveTaskDto(timestamp);
+        String sanifiedTimestamp = sanifyStringForLogging(timestamp);
+        LOGGER.info("Received order to launch task {}", sanifiedTimestamp);
+        String requestUrl = getUrlToRetrieveTaskDto(sanifiedTimestamp);
         LOGGER.info("Requesting URL: {}", requestUrl);
         ResponseEntity<TaskDto> responseEntity = restTemplateBuilder.build().getForEntity(requestUrl, TaskDto.class); // NOSONAR
         TaskDto taskDto = responseEntity.getBody();
@@ -86,9 +88,10 @@ public class JobLauncherService {
                 || taskDto.getStatus() == TaskStatus.INTERRUPTED;
     }
 
-    public boolean stopJob(String timestamp) {
-        LOGGER.info("Received order to interrupt task {}", timestamp);
-        String requestUrl = getUrlToRetrieveTaskDto(timestamp);
+    public boolean stopJob(String timestamp, UUID runId) {
+        final String sanifiedTimestamp = sanifyStringForLogging(timestamp);
+        LOGGER.info("Received order to interrupt task {}", sanifiedTimestamp);
+        String requestUrl = getUrlToRetrieveTaskDto(sanifiedTimestamp);
         LOGGER.info("Requesting URL: {}", requestUrl);
         ResponseEntity<TaskDto> responseEntity = restTemplateBuilder.build().getForEntity(requestUrl, TaskDto.class); // NOSONAR
         TaskDto taskDto = responseEntity.getBody();
@@ -97,10 +100,10 @@ public class JobLauncherService {
             // This should be done only once, as soon as the information to add in mdc is available.
             MDC.put("gridcapa-task-id", taskDto.getId().toString());
 
-            if (taskDto.getStatus() == TaskStatus.RUNNING) {
-                jobLauncherCommonService.stopJob(taskDto, STOP_BINDING);
+            if (taskDto.getStatus() == TaskStatus.RUNNING || taskDto.getStatus() == TaskStatus.PENDING) {
+                jobLauncherCommonService.stopJob(runId, taskDto, STOP_BINDING);
             } else {
-                jobLauncherEventsLogger.warn("Failed to interrupt task with timestamp {} because it is not running yet", taskDto.getTimestamp());
+                jobLauncherEventsLogger.warn("Failed to interrupt task with timestamp {} because it is not pending or running yet", taskDto.getTimestamp());
             }
             return true;
         }
@@ -109,5 +112,13 @@ public class JobLauncherService {
 
     private String getUrlToRetrieveTaskDto(String timestamp) {
         return taskManagerTimestampBaseUrl + timestamp;
+    }
+
+    private String sanifyStringForLogging(String input) {
+        if (input != null) {
+            return input.replaceAll("[\n\r]", "_");
+        } else {
+            return null;
+        }
     }
 }
