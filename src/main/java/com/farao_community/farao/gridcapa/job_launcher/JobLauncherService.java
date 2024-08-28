@@ -57,8 +57,14 @@ public class JobLauncherService {
      * @return False only when the timestamp does not exist. Otherwise, true whether computation is launched or not.
      */
     public boolean launchJob(String timestamp, List<TaskParameterDto> parameters) {
-        LOGGER.info("Received order to launch task {}", timestamp);
-        String requestUrl = getUrlToRetrieveTaskDto(timestamp);
+        String sanifiedTimestamp = timestamp;
+        if (sanifiedTimestamp != null) {
+            sanifiedTimestamp = sanifiedTimestamp.replaceAll("[\n\r]", "_");
+            LOGGER.info("Received order to launch task {}", sanifiedTimestamp);
+        } else {
+            LOGGER.info("Received order to launch task null");
+        }
+        String requestUrl = getUrlToRetrieveTaskDto(sanifiedTimestamp);
         LOGGER.info("Requesting URL: {}", requestUrl);
         ResponseEntity<TaskDto> responseEntity = restTemplateBuilder.build().getForEntity(requestUrl, TaskDto.class); // NOSONAR
         TaskDto taskDto = responseEntity.getBody();
@@ -88,8 +94,14 @@ public class JobLauncherService {
     }
 
     public boolean stopJob(String timestamp, UUID runId) {
-        LOGGER.info("Received order to interrupt task {}", timestamp);
-        String requestUrl = getUrlToRetrieveTaskDto(timestamp);
+        String sanifiedTimestamp = timestamp;
+        if (sanifiedTimestamp != null) {
+            sanifiedTimestamp = sanifiedTimestamp.replaceAll("[\n\r]", "_");
+            LOGGER.info("Received order to interrupt task {}", sanifiedTimestamp);
+        } else {
+            LOGGER.info("Received order to interrupt task null");
+        }
+        String requestUrl = getUrlToRetrieveTaskDto(sanifiedTimestamp);
         LOGGER.info("Requesting URL: {}", requestUrl);
         ResponseEntity<TaskDto> responseEntity = restTemplateBuilder.build().getForEntity(requestUrl, TaskDto.class); // NOSONAR
         TaskDto taskDto = responseEntity.getBody();

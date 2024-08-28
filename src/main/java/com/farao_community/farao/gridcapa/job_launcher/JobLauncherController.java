@@ -53,7 +53,13 @@ public class JobLauncherController {
     }
 
     private ResponseEntity<Void> getEmptyResponseEntity(@PathVariable String timestamp) {
-        LOGGER.error("Failed to retrieve task with timestamp {}", timestamp);
+        String sanifiedTimestamp = timestamp;
+        if (sanifiedTimestamp != null) {
+            sanifiedTimestamp = sanifiedTimestamp.replaceAll("[\n\r]", "_");
+            LOGGER.error("Failed to retrieve task with timestamp {}", sanifiedTimestamp);
+        } else {
+            LOGGER.error("Failed to retrieve task with timestamp null");
+        }
         return ResponseEntity.notFound().build();
     }
 
