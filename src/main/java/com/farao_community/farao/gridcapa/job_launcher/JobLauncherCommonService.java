@@ -41,9 +41,11 @@ public class JobLauncherCommonService {
         restTemplateBuilder.build().put(getUrlToAddNewRunInTaskHistory(timestamp), taskDto.getInputs());
         ResponseEntity<TaskDto> responseEntity = restTemplateBuilder.build().getForEntity(getUrlToGetTask(timestamp), TaskDto.class);
         restTemplateBuilder.build().put(getUrlToUpdateTaskStatus(timestamp, TaskStatus.PENDING), TaskDto.class);
-        if (responseEntity.getBody() != null && responseEntity.getStatusCode() == HttpStatus.OK) {
+        TaskDto taskDtoWithRun = responseEntity.getBody();
+        if (taskDtoWithRun != null && responseEntity.getStatusCode() == HttpStatus.OK) {
             jobLauncherEventsLogger.info("Task launched on TS {}", timestamp);
-            streamBridge.send(runBinding, responseEntity.getBody());
+            taskDtoWithRun = new TaskDto(taskDtoWithRun.getId(), taskDtoWithRun.getTimestamp(), taskDtoWithRun.getStatus(), taskDtoWithRun.getInputs(), taskDtoWithRun.getAvailableInputs(), taskDtoWithRun.getOutputs(), taskDtoWithRun.getProcessEvents(), taskDtoWithRun.getRunHistory(), taskDto.getParameters());
+            streamBridge.send(runBinding, taskDtoWithRun);
         } else {
             jobLauncherEventsLogger.warn("Failed to launch task on TS {} because it is not available", taskDto.getTimestamp());
         }

@@ -25,6 +25,8 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.UUID;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -72,7 +74,7 @@ class JobLauncherCommonServiceTest {
         verify(restTemplate, times(1)).put(TEST_URL + timestamp + "/runHistory", inputs);
         verify(restTemplate, times(1)).put(TEST_URL + timestamp + "/status?status=PENDING", TaskDto.class);
         verify(restTemplate, times(1)).getForEntity(TEST_URL + timestamp, TaskDto.class);
-        verify(streamBridge, times(1)).send(binding, taskDto);
+        verify(streamBridge, times(1)).send(eq(binding), any(TaskDto.class));
         verifyNoMoreInteractions(restTemplate);
     }
 
