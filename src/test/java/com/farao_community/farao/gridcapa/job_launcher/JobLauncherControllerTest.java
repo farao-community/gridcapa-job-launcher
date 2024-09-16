@@ -1,21 +1,20 @@
 package com.farao_community.farao.gridcapa.job_launcher;
 
-import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
-import org.junit.jupiter.api.BeforeEach;
+import com.farao_community.farao.gridcapa.job_launcher.service.JobLauncherService;
+import com.farao_community.farao.gridcapa.task_manager.api.ParameterDto;
+import com.farao_community.farao.gridcapa.task_manager.api.TaskParameterDto;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Joris Mancini {@literal <joris.mancini at rte-france.com>}
@@ -26,47 +25,57 @@ class JobLauncherControllerTest {
     @Autowired
     private JobLauncherController jobLauncherController;
 
-    private RestTemplate restTemplate;
-
     @MockBean
-    private RestTemplateBuilder restTemplateBuilder;
+    private JobLauncherService jobLauncherService;
 
-    @BeforeEach
-    void setUp() {
-        restTemplate = Mockito.mock(RestTemplate.class);
-        Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
+    @Test
+    void testLaunchJobWithParametersOk() {
+        final String timestamp = "2021-12-09T21:30";
+        final List<ParameterDto> parameterDtoList = List.of(new ParameterDto("id", "name", 1, "type", "section", 1, "value", "default"));
+        final ArgumentCaptor<List<TaskParameterDto>> listArgumentCaptor = ArgumentCaptor.forClass(List.class);
+        Mockito.when(jobLauncherService.launchJob(Mockito.eq(timestamp), listArgumentCaptor.capture())).thenReturn(true);
+
+        final ResponseEntity<Void> response = jobLauncherController.launchJob(timestamp, parameterDtoList);
+        Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Assertions.assertThat(listArgumentCaptor.getValue()).isNotEmpty();
     }
 
     @Test
-    void testLaunchJobOk() {
-        TaskDto taskDto = Mockito.mock(TaskDto.class);
-        Mockito.when(taskDto.getId()).thenReturn(UUID.randomUUID());
+    void testLaunchJobWithoutParametersOk() {
+        final String timestamp = "2021-12-09T21:30";
+        Mockito.when(jobLauncherService.launchJob(timestamp, List.of())).thenReturn(true);
 
-        ResponseEntity getResponseEntity = Mockito.mock(ResponseEntity.class);
-        Mockito.when(restTemplate.getForEntity("http://test-uri/2021-12-09T21:30", TaskDto.class)).thenReturn(getResponseEntity);
-        Mockito.when(getResponseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
-        Mockito.when(getResponseEntity.getBody()).thenReturn(taskDto);
-
-        ResponseEntity putResponseEntity = Mockito.mock(ResponseEntity.class);
-        Mockito.when(restTemplate.getForEntity("http://test-uri/2021-12-09T21:30/status?status=PENDING", TaskDto.class)).thenReturn(putResponseEntity);
-        Mockito.when(putResponseEntity.getStatusCode()).thenReturn(HttpStatus.OK);
-        Mockito.when(putResponseEntity.getBody()).thenReturn(taskDto);
-
-        ResponseEntity<Void> response = jobLauncherController.launchJob("2021-12-09T21:30", List.of());
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        final ResponseEntity<Void> response = jobLauncherController.launchJob(timestamp, List.of());
+        Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
     @Test
     void testLaunchJobNotFound() {
-        ResponseEntity responseEntity = Mockito.mock(ResponseEntity.class);
-        Mockito.when(restTemplate.getForEntity("http://test-uri/2021-12-09T21:30", TaskDto.class)).thenReturn(responseEntity);
-        Mockito.when(responseEntity.getStatusCode()).thenReturn(HttpStatus.NOT_FOUND);
-        Mockito.when(responseEntity.getBody()).thenReturn(null);
-        TaskDto taskDto = Mockito.mock(TaskDto.class);
-        Mockito.when(responseEntity.getBody()).thenReturn(taskDto);
-        Mockito.when(taskDto.getId()).thenReturn(UUID.randomUUID());
+        final String timestamp = "2021-12-09T21:30";
+        final List<ParameterDto> parameterDtoList = null;
+        Mockito.when(jobLauncherService.launchJob(timestamp, List.of())).thenReturn(false);
 
-        ResponseEntity<Void> response = jobLauncherController.launchJob("2021-12-09T21:30", List.of());
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        final ResponseEntity<Void> response = jobLauncherController.launchJob(timestamp, parameterDtoList);
+        Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
+    void testStopJobOk() {
+        final String timestamp = "2021-12-09T21:30";
+        final UUID runId = UUID.randomUUID();
+        Mockito.when(jobLauncherService.stopJob(timestamp, runId)).thenReturn(true);
+
+        final ResponseEntity<Void> response = jobLauncherController.stopJob(timestamp, runId);
+        Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    void testStopJobNotFound() {
+        final String timestamp = "2021-12-09T21:30";
+        final UUID runId = UUID.randomUUID();
+        Mockito.when(jobLauncherService.stopJob(timestamp, runId)).thenReturn(false);
+
+        final ResponseEntity<Void> response = jobLauncherController.stopJob(timestamp, runId);
+        Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 }

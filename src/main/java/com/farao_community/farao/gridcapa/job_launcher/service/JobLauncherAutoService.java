@@ -4,8 +4,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package com.farao_community.farao.gridcapa.job_launcher;
+package com.farao_community.farao.gridcapa.job_launcher.service;
 
+import com.farao_community.farao.gridcapa.job_launcher.JobLauncherConfigurationProperties;
 import com.farao_community.farao.gridcapa.task_manager.api.ProcessFileDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskStatus;
@@ -46,7 +47,7 @@ public class JobLauncherAutoService {
                 .subscribe(this::runReadyTasks);
     }
 
-    void runReadyTasks(TaskDto updatedTaskDto) {
+    void runReadyTasks(final TaskDto updatedTaskDto) {
         try {
             if (updatedTaskDto.getStatus() == TaskStatus.READY) {
                 boolean autoTriggerFiletypesDefinedInConfig = !jobLauncherConfigurationProperties.autoTriggerFiletypes().isEmpty();

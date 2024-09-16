@@ -54,3 +54,9 @@ scheduler:
   start-hour: 0
   end-hour: 20
   frequency-in-minutes: 1
+
+retry:
+  backoff:
+    delay: 300
+    multiplier: 2
+  max-attempts: 3

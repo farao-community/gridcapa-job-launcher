@@ -4,20 +4,19 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package com.farao_community.farao.gridcapa.job_launcher;
+package com.farao_community.farao.gridcapa.job_launcher.service;
 
+import com.farao_community.farao.gridcapa.job_launcher.util.LoggingUtil;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskParameterDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -31,17 +30,14 @@ public class JobLauncherService {
 
     private final JobLauncherCommonService jobLauncherCommonService;
     private final Logger jobLauncherEventsLogger;
-    private final RestTemplateBuilder restTemplateBuilder;
-    private final String taskManagerTimestampBaseUrl;
+    private final TaskManagerService taskManagerService;
 
     public JobLauncherService(JobLauncherCommonService jobLauncherCommonService,
-                              JobLauncherConfigurationProperties jobLauncherConfigurationProperties,
                               Logger jobLauncherEventsLogger,
-                              RestTemplateBuilder restTemplateBuilder) {
+                              TaskManagerService taskManagerService) {
         this.jobLauncherCommonService = jobLauncherCommonService;
         this.jobLauncherEventsLogger = jobLauncherEventsLogger;
-        this.restTemplateBuilder = restTemplateBuilder;
-        this.taskManagerTimestampBaseUrl = jobLauncherConfigurationProperties.url().taskManagerTimestampUrl();
+        this.taskManagerService = taskManagerService;
     }
 
     /**
@@ -56,69 +52,59 @@ public class JobLauncherService {
      * @param timestamp: Task timestamp to be launched.
      * @return False only when the timestamp does not exist. Otherwise, true whether computation is launched or not.
      */
-    public boolean launchJob(String timestamp, List<TaskParameterDto> parameters) {
-        String sanifiedTimestamp = sanifyStringForLogging(timestamp);
+    public boolean launchJob(final String timestamp, final List<TaskParameterDto> parameters) {
+        final String sanifiedTimestamp = LoggingUtil.sanifyString(timestamp);
         LOGGER.info("Received order to launch task {}", sanifiedTimestamp);
-        String requestUrl = getUrlToRetrieveTaskDto(sanifiedTimestamp);
-        LOGGER.info("Requesting URL: {}", requestUrl);
-        ResponseEntity<TaskDto> responseEntity = restTemplateBuilder.build().getForEntity(requestUrl, TaskDto.class); // NOSONAR
-        TaskDto taskDto = responseEntity.getBody();
-        if (responseEntity.getStatusCode() == HttpStatus.OK && taskDto != null) {
-            if (!parameters.isEmpty()) {
-                taskDto = new TaskDto(taskDto.getId(), taskDto.getTimestamp(), taskDto.getStatus(), taskDto.getInputs(), taskDto.getAvailableInputs(), taskDto.getOutputs(), taskDto.getProcessEvents(), taskDto.getRunHistory(), parameters);
-            }
+        final Optional<TaskDto> taskDtoOpt = taskManagerService.getTaskFromTimestamp(timestamp);
+        if (taskDtoOpt.isPresent()) {
+            final TaskDto taskDto = taskDtoOpt.get();
             // Propagate in logs MDC the task id as an extra field to be able to match microservices logs with calculation tasks.
             // This should be done only once, as soon as the information to add in mdc is available.
             MDC.put("gridcapa-task-id", taskDto.getId().toString());
 
             if (isTaskReadyToBeLaunched(taskDto)) {
-                jobLauncherCommonService.launchJob(taskDto, RUN_BINDING);
+                jobLauncherCommonService.launchJob(taskDto, RUN_BINDING, parameters);
             } else {
                 jobLauncherEventsLogger.warn("Failed to launch task with timestamp {} because it is not ready yet", taskDto.getTimestamp());
             }
             return true;
+        } else {
+            LOGGER.error("Failed to launch task with timestamp {}: could not retrieve task from the task-manager", sanifiedTimestamp);
         }
         return false;
     }
 
-    private static boolean isTaskReadyToBeLaunched(TaskDto taskDto) {
+    private static boolean isTaskReadyToBeLaunched(final TaskDto taskDto) {
         return taskDto.getStatus() == TaskStatus.READY
                 || taskDto.getStatus() == TaskStatus.SUCCESS
                 || taskDto.getStatus() == TaskStatus.ERROR
                 || taskDto.getStatus() == TaskStatus.INTERRUPTED;
     }
 
-    public boolean stopJob(String timestamp, UUID runId) {
-        final String sanifiedTimestamp = sanifyStringForLogging(timestamp);
+    public boolean stopJob(final String timestamp, final UUID runId) {
+        final String sanifiedTimestamp = LoggingUtil.sanifyString(timestamp);
         LOGGER.info("Received order to interrupt task {}", sanifiedTimestamp);
-        String requestUrl = getUrlToRetrieveTaskDto(sanifiedTimestamp);
-        LOGGER.info("Requesting URL: {}", requestUrl);
-        ResponseEntity<TaskDto> responseEntity = restTemplateBuilder.build().getForEntity(requestUrl, TaskDto.class); // NOSONAR
-        TaskDto taskDto = responseEntity.getBody();
-        if (responseEntity.getStatusCode() == HttpStatus.OK && taskDto != null) {
+        final Optional<TaskDto> taskDtoOpt = taskManagerService.getTaskFromTimestamp(timestamp);
+        if (taskDtoOpt.isPresent()) {
+            final TaskDto taskDto = taskDtoOpt.get();
             // Propagate in logs MDC the task id as an extra field to be able to match microservices logs with calculation tasks.
             // This should be done only once, as soon as the information to add in mdc is available.
             MDC.put("gridcapa-task-id", taskDto.getId().toString());
 
-            if (taskDto.getStatus() == TaskStatus.RUNNING || taskDto.getStatus() == TaskStatus.PENDING) {
+            if (isTaskReadyToBeStopped(taskDto)) {
                 jobLauncherCommonService.stopJob(runId, taskDto, STOP_BINDING);
             } else {
                 jobLauncherEventsLogger.warn("Failed to interrupt task with timestamp {} because it is not pending or running yet", taskDto.getTimestamp());
             }
             return true;
+        } else {
+            LOGGER.error("Failed to interrupt task with timestamp {}: could not retrieve task from the task-manager", sanifiedTimestamp);
         }
         return false;
     }
 
-    private String getUrlToRetrieveTaskDto(String timestamp) {
-        return taskManagerTimestampBaseUrl + timestamp;
-    }
-
-    private String sanifyStringForLogging(String input) {
-        if (input != null) {
-            return input.replaceAll("[\n\r]", "_");
-        } else {
-            return null;
-        }
+    private static boolean isTaskReadyToBeStopped(final TaskDto taskDto) {
+        return taskDto.getStatus() == TaskStatus.RUNNING
+                || taskDto.getStatus() == TaskStatus.PENDING;
     }
 }
