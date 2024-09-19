@@ -4,8 +4,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package com.farao_community.farao.gridcapa.job_launcher;
+package com.farao_community.farao.gridcapa.job_launcher.service;
 
+import com.farao_community.farao.gridcapa.job_launcher.JobLauncherConfigurationProperties;
 import com.farao_community.farao.gridcapa.task_manager.api.ProcessFileDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskStatus;
@@ -46,10 +47,10 @@ public class JobLauncherAutoService {
                 .subscribe(this::runReadyTasks);
     }
 
-    void runReadyTasks(TaskDto updatedTaskDto) {
+    void runReadyTasks(final TaskDto updatedTaskDto) {
         try {
             if (updatedTaskDto.getStatus() == TaskStatus.READY) {
-                boolean autoTriggerFiletypesDefinedInConfig = !jobLauncherConfigurationProperties.autoTriggerFiletypes().isEmpty();
+                final boolean autoTriggerFiletypesDefinedInConfig = !jobLauncherConfigurationProperties.autoTriggerFiletypes().isEmpty();
                 if (autoTriggerFiletypesDefinedInConfig && allTriggerFilesAlreadyUsed(updatedTaskDto)) {
                     // If all selected files corresponding to trigger filetypes are linked to some Run in Task's history,
                     // then the update does not concern a trigger file, so job launcher should do nothing
@@ -67,12 +68,12 @@ public class JobLauncherAutoService {
         }
     }
 
-    private boolean allTriggerFilesAlreadyUsed(TaskDto updatedTaskDto) {
-        List<ProcessFileDto> triggerFiles = updatedTaskDto.getInputs().stream()
+    private boolean allTriggerFilesAlreadyUsed(final TaskDto updatedTaskDto) {
+        final List<ProcessFileDto> triggerFiles = updatedTaskDto.getInputs().stream()
                 .filter(f -> jobLauncherConfigurationProperties.autoTriggerFiletypes().contains(f.getFileType()))
                 .toList();
 
-        Set<ProcessFileDto> filesUsedInPreviousRun = updatedTaskDto.getRunHistory().stream()
+        final Set<ProcessFileDto> filesUsedInPreviousRun = updatedTaskDto.getRunHistory().stream()
                 .flatMap(run -> run.getInputs().stream())
                 .collect(Collectors.toSet());
         return filesUsedInPreviousRun.containsAll(triggerFiles);

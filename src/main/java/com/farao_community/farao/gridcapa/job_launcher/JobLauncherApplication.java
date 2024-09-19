@@ -9,6 +9,7 @@ package com.farao_community.farao.gridcapa.job_launcher;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
@@ -17,6 +18,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @EnableWebMvc
 @SpringBootApplication
 @EnableScheduling
+@EnableRetry
 public class JobLauncherApplication {
     public static void main(String[] args) {
         SpringApplication.run(JobLauncherApplication.class, args);

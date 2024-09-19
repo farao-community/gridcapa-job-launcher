@@ -6,6 +6,8 @@
  */
 package com.farao_community.farao.gridcapa.job_launcher;
 
+import com.farao_community.farao.gridcapa.job_launcher.service.JobLauncherService;
+import com.farao_community.farao.gridcapa.job_launcher.util.LoggingUtil;
 import com.farao_community.farao.gridcapa.task_manager.api.ParameterDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskParameterDto;
 import org.slf4j.Logger;
@@ -52,15 +54,9 @@ public class JobLauncherController {
         return getEmptyResponseEntity(timestamp);
     }
 
-    private ResponseEntity<Void> getEmptyResponseEntity(@PathVariable String timestamp) {
-        String sanifiedTimestamp = timestamp;
-        if (sanifiedTimestamp != null) {
-            sanifiedTimestamp = sanifiedTimestamp.replaceAll("[\n\r]", "_");
-            LOGGER.error("Failed to retrieve task with timestamp {}", sanifiedTimestamp);
-        } else {
-            LOGGER.error("Failed to retrieve task with timestamp null");
-        }
+    private ResponseEntity<Void> getEmptyResponseEntity(final String timestamp) {
+        final String sanifiedTimestamp = LoggingUtil.sanifyString(timestamp);
+        LOGGER.error("Failed to retrieve task with timestamp {}", sanifiedTimestamp);
         return ResponseEntity.notFound().build();
     }
-
 }
