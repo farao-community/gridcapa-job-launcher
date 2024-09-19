@@ -40,7 +40,7 @@ class InterruptionServerServiceTest {
         final UUID taskId = UUID.randomUUID();
         final TaskDto taskDto = Mockito.mock(TaskDto.class);
         Mockito.when(taskDto.getId()).thenReturn(taskId);
-        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        final RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
         Mockito.when(restTemplate.exchange(Mockito.contains(runId.toString()), Mockito.eq(HttpMethod.PUT), Mockito.any(HttpEntity.class), Mockito.eq(Boolean.class)))
                 .thenReturn(new ResponseEntity<>(true, HttpStatus.OK));
@@ -56,7 +56,7 @@ class InterruptionServerServiceTest {
         final UUID taskId = UUID.randomUUID();
         final TaskDto taskDto = Mockito.mock(TaskDto.class);
         Mockito.when(taskDto.getId()).thenReturn(taskId);
-        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        final RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
         Mockito.when(restTemplate.exchange(Mockito.contains(runId.toString()), Mockito.eq(HttpMethod.PUT), Mockito.any(HttpEntity.class), Mockito.eq(TaskDto.class)))
                 .thenReturn(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
@@ -72,7 +72,7 @@ class InterruptionServerServiceTest {
         final UUID taskId = UUID.randomUUID();
         final TaskDto taskDto = Mockito.mock(TaskDto.class);
         Mockito.when(taskDto.getId()).thenReturn(taskId);
-        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        final RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
         Mockito.when(restTemplate.exchange(Mockito.contains(runId.toString()), Mockito.eq(HttpMethod.PUT), Mockito.any(HttpEntity.class), Mockito.eq(Boolean.class)))
                 .thenThrow(RestClientException.class)
@@ -89,7 +89,7 @@ class InterruptionServerServiceTest {
         final UUID taskId = UUID.randomUUID();
         final TaskDto taskDto = Mockito.mock(TaskDto.class);
         Mockito.when(taskDto.getId()).thenReturn(taskId);
-        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        final RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
         Mockito.when(restTemplate.exchange(Mockito.contains(runId.toString()), Mockito.eq(HttpMethod.PUT), Mockito.any(HttpEntity.class), Mockito.eq(Boolean.class)))
                 .thenThrow(RestClientException.class);

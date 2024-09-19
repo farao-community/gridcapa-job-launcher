@@ -8,6 +8,7 @@ package com.farao_community.farao.gridcapa.job_launcher.service;
 
 import com.farao_community.farao.gridcapa.job_launcher.JobLauncherConfigurationProperties;
 import com.farao_community.farao.gridcapa.job_launcher.RetryException;
+import com.farao_community.farao.gridcapa.job_launcher.util.LoggingUtil;
 import com.farao_community.farao.gridcapa.task_manager.api.ProcessFileDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskStatus;
@@ -56,7 +57,8 @@ public class TaskManagerService {
         final int retryCount = retryContext != null ? retryContext.getRetryCount() : -1;
         try {
             final String requestUrl = getTaskManagerTimestampUrl(timestamp);
-            LOGGER.info(REQUESTING_URL_ATTEMPT, requestUrl, retryCount);
+            final String sanifiedUrl = LoggingUtil.sanifyString(requestUrl);
+            LOGGER.info(REQUESTING_URL_ATTEMPT, sanifiedUrl, retryCount);
             final ResponseEntity<TaskDto> responseEntity = restTemplateBuilder.build().getForEntity(requestUrl, TaskDto.class); // NOSONAR
             return getOptionalFromResponseEntity(responseEntity);
         } catch (RestClientException e) {
@@ -103,7 +105,8 @@ public class TaskManagerService {
         try {
             final HttpEntity<List<ProcessFileDto>> requestEntity = new HttpEntity<>(inputs);
             final String requestUrl = getTaskManagerTimestampUrl(timestamp) + "/runHistory";
-            LOGGER.info("Requesting URL: {} with parameters: {} (#{} attempt)", requestUrl, inputs, retryCount);
+            final String sanifiedUrl = LoggingUtil.sanifyString(requestUrl);
+            LOGGER.info("Requesting URL: {} with parameters: {} (#{} attempt)", sanifiedUrl, inputs, retryCount);
             final ResponseEntity<TaskDto> responseEntity = restTemplateBuilder.build().exchange(requestUrl, HttpMethod.PUT, requestEntity, TaskDto.class);
             return getOptionalFromResponseEntity(responseEntity);
         } catch (RestClientException e) {
@@ -126,7 +129,8 @@ public class TaskManagerService {
         final int retryCount = retryContext != null ? retryContext.getRetryCount() : -1;
         try {
             final String requestUrl = getTaskStatusUpdateUrl(timestamp, taskStatus);
-            LOGGER.info(REQUESTING_URL_ATTEMPT, requestUrl, retryCount);
+            final String sanifiedUrl = LoggingUtil.sanifyString(requestUrl);
+            LOGGER.info(REQUESTING_URL_ATTEMPT, sanifiedUrl, retryCount);
             final ResponseEntity<TaskDto> responseEntity = restTemplateBuilder.build().exchange(requestUrl, HttpMethod.PUT, new HttpEntity<Object>(Map.of()), TaskDto.class);
             return getOptionalFromResponseEntity(responseEntity).isPresent();
         } catch (RestClientException e) {

@@ -54,8 +54,8 @@ public class JobLauncherController {
         return getEmptyResponseEntity(timestamp);
     }
 
-    private ResponseEntity<Void> getEmptyResponseEntity(@PathVariable String timestamp) {
-        String sanifiedTimestamp = LoggingUtil.sanifyString(timestamp);
+    private ResponseEntity<Void> getEmptyResponseEntity(final String timestamp) {
+        final String sanifiedTimestamp = LoggingUtil.sanifyString(timestamp);
         LOGGER.error("Failed to retrieve task with timestamp {}", sanifiedTimestamp);
         return ResponseEntity.notFound().build();
     }

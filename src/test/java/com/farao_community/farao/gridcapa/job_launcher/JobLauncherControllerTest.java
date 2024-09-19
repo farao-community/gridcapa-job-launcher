@@ -36,6 +36,7 @@ class JobLauncherControllerTest {
         Mockito.when(jobLauncherService.launchJob(Mockito.eq(timestamp), listArgumentCaptor.capture())).thenReturn(true);
 
         final ResponseEntity<Void> response = jobLauncherController.launchJob(timestamp, parameterDtoList);
+
         Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         Assertions.assertThat(listArgumentCaptor.getValue()).isNotEmpty();
     }
@@ -46,6 +47,7 @@ class JobLauncherControllerTest {
         Mockito.when(jobLauncherService.launchJob(timestamp, List.of())).thenReturn(true);
 
         final ResponseEntity<Void> response = jobLauncherController.launchJob(timestamp, List.of());
+
         Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
@@ -56,6 +58,7 @@ class JobLauncherControllerTest {
         Mockito.when(jobLauncherService.launchJob(timestamp, List.of())).thenReturn(false);
 
         final ResponseEntity<Void> response = jobLauncherController.launchJob(timestamp, parameterDtoList);
+
         Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
@@ -66,6 +69,7 @@ class JobLauncherControllerTest {
         Mockito.when(jobLauncherService.stopJob(timestamp, runId)).thenReturn(true);
 
         final ResponseEntity<Void> response = jobLauncherController.stopJob(timestamp, runId);
+
         Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
@@ -76,6 +80,7 @@ class JobLauncherControllerTest {
         Mockito.when(jobLauncherService.stopJob(timestamp, runId)).thenReturn(false);
 
         final ResponseEntity<Void> response = jobLauncherController.stopJob(timestamp, runId);
+
         Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 }

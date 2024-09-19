@@ -38,7 +38,7 @@ class TaskManagerServiceTest {
     @Test
     void getTaskFromTimestampNoRetry() {
         final String timestamp = "2024-09-13T09:30Z";
-        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        final RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
         final TaskDto taskDto = Mockito.mock(TaskDto.class);
         Mockito.when(restTemplate.getForEntity(Mockito.contains(timestamp), Mockito.eq(TaskDto.class)))
@@ -52,7 +52,7 @@ class TaskManagerServiceTest {
     @Test
     void getTaskFromTimestampTaskNotFound() {
         final String timestamp = "2024-09-13T09:30Z";
-        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        final RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
         Mockito.when(restTemplate.getForEntity(Mockito.contains(timestamp), Mockito.eq(TaskDto.class)))
                 .thenReturn(new ResponseEntity<>(HttpStatus.NOT_FOUND));
@@ -65,7 +65,7 @@ class TaskManagerServiceTest {
     @Test
     void getTaskFromTimestampRetryOnce() {
         final String timestamp = "2024-09-13T09:30Z";
-        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        final RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
         final TaskDto taskDto = Mockito.mock(TaskDto.class);
         Mockito.when(restTemplate.getForEntity(Mockito.contains(timestamp), Mockito.eq(TaskDto.class)))
@@ -80,7 +80,7 @@ class TaskManagerServiceTest {
     @Test
     void getTaskFromTimestampAllRetry() {
         final String timestamp = "2024-09-13T09:30Z";
-        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        final RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
         Mockito.when(restTemplate.getForEntity(Mockito.contains(timestamp), Mockito.eq(TaskDto.class)))
                 .thenThrow(RestClientException.class);
@@ -93,7 +93,7 @@ class TaskManagerServiceTest {
     @Test
     void getTasksFromBusinessDateNoRetry() {
         final String date = "2024-09-13";
-        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        final RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
         final TaskDto taskDto = Mockito.mock(TaskDto.class);
         Mockito.when(restTemplate.getForEntity(Mockito.contains(date), Mockito.eq(TaskDto[].class)))
@@ -108,7 +108,7 @@ class TaskManagerServiceTest {
     @Test
     void getTasksFromBusinessDateTaskNotFound() {
         final String date = "2024-09-13";
-        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        final RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
         Mockito.when(restTemplate.getForEntity(Mockito.contains(date), Mockito.eq(TaskDto[].class)))
                 .thenReturn(new ResponseEntity<>(HttpStatus.NOT_FOUND));
@@ -121,7 +121,7 @@ class TaskManagerServiceTest {
     @Test
     void getTasksFromBusinessDateRetryOnce() {
         final String date = "2024-09-13";
-        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        final RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
         final TaskDto taskDto = Mockito.mock(TaskDto.class);
         Mockito.when(restTemplate.getForEntity(Mockito.contains(date), Mockito.eq(TaskDto[].class)))
@@ -137,7 +137,7 @@ class TaskManagerServiceTest {
     @Test
     void getTasksFromBusinessDateAllRetry() {
         final String date = "2024-09-13";
-        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        final RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
         Mockito.when(restTemplate.getForEntity(Mockito.contains(date), Mockito.eq(TaskDto[].class)))
                 .thenThrow(RestClientException.class);
@@ -150,7 +150,7 @@ class TaskManagerServiceTest {
     @Test
     void addNewRunInTaskHistoryNoRetry() {
         final String timestamp = "2024-09-13T09:30Z";
-        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        final RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
         final TaskDto taskDto = Mockito.mock(TaskDto.class);
         Mockito.when(restTemplate.exchange(Mockito.contains(timestamp), Mockito.eq(HttpMethod.PUT), Mockito.any(HttpEntity.class), Mockito.eq(TaskDto.class)))
@@ -164,7 +164,7 @@ class TaskManagerServiceTest {
     @Test
     void addNewRunInTaskHistoryTaskNotFound() {
         final String timestamp = "2024-09-13T09:30Z";
-        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        final RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
         Mockito.when(restTemplate.exchange(Mockito.contains(timestamp), Mockito.eq(HttpMethod.PUT), Mockito.any(HttpEntity.class), Mockito.eq(TaskDto.class)))
                 .thenReturn(new ResponseEntity<>(HttpStatus.NOT_FOUND));
@@ -177,7 +177,7 @@ class TaskManagerServiceTest {
     @Test
     void addNewRunInTaskHistoryRetryOnce() {
         final String timestamp = "2024-09-13T09:30Z";
-        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        final RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
         final TaskDto taskDto = Mockito.mock(TaskDto.class);
         Mockito.when(restTemplate.exchange(Mockito.contains(timestamp), Mockito.eq(HttpMethod.PUT), Mockito.any(HttpEntity.class), Mockito.eq(TaskDto.class)))
@@ -192,7 +192,7 @@ class TaskManagerServiceTest {
     @Test
     void addNewRunInTaskHistoryAllRetry() {
         final String timestamp = "2024-09-13T09:30Z";
-        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        final RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
         Mockito.when(restTemplate.exchange(Mockito.contains(timestamp), Mockito.eq(HttpMethod.PUT), Mockito.any(HttpEntity.class), Mockito.eq(TaskDto.class)))
                 .thenThrow(RestClientException.class);
@@ -205,7 +205,7 @@ class TaskManagerServiceTest {
     @Test
     void updateTaskStatusNoRetry() {
         final String timestamp = "2024-09-13T09:30Z";
-        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        final RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
         final TaskDto taskDto = Mockito.mock(TaskDto.class);
         Mockito.when(restTemplate.exchange(Mockito.contains(timestamp), Mockito.eq(HttpMethod.PUT), Mockito.any(HttpEntity.class), Mockito.eq(TaskDto.class)))
@@ -219,7 +219,7 @@ class TaskManagerServiceTest {
     @Test
     void updateTaskStatusTaskNotFound() {
         final String timestamp = "2024-09-13T09:30Z";
-        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        final RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
         Mockito.when(restTemplate.exchange(Mockito.contains(timestamp), Mockito.eq(HttpMethod.PUT), Mockito.any(HttpEntity.class), Mockito.eq(TaskDto.class)))
                 .thenReturn(new ResponseEntity<>(HttpStatus.NOT_FOUND));
@@ -232,7 +232,7 @@ class TaskManagerServiceTest {
     @Test
     void updateTaskStatusRetryOnce() {
         final String timestamp = "2024-09-13T09:30Z";
-        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        final RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
         final TaskDto taskDto = Mockito.mock(TaskDto.class);
         Mockito.when(restTemplate.exchange(Mockito.contains(timestamp), Mockito.eq(HttpMethod.PUT), Mockito.any(HttpEntity.class), Mockito.eq(TaskDto.class)))
@@ -247,7 +247,7 @@ class TaskManagerServiceTest {
     @Test
     void updateTaskStatusAllRetry() {
         final String timestamp = "2024-09-13T09:30Z";
-        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        final RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
         Mockito.when(restTemplateBuilder.build()).thenReturn(restTemplate);
         Mockito.when(restTemplate.exchange(Mockito.contains(timestamp), Mockito.eq(HttpMethod.PUT), Mockito.any(HttpEntity.class), Mockito.eq(TaskDto.class)))
                 .thenThrow(RestClientException.class);

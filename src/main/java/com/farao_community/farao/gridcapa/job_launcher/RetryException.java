@@ -10,11 +10,11 @@ package com.farao_community.farao.gridcapa.job_launcher;
  * @author Vincent Bochet {@literal <vincent.bochet at rte-france.com>}
  */
 public class RetryException extends RuntimeException {
-    public RetryException(String message, Throwable cause) {
+    public RetryException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
-    public RetryException(String message) {
+    public RetryException(final String message) {
         super(message);
     }
 }

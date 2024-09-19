@@ -72,7 +72,7 @@ class JobLauncherServiceTest {
         final boolean launchJobResult = service.launchJob(timestamp, parameters);
 
         Assertions.assertThat(launchJobResult).isTrue();
-        ArgumentCaptor<List<TaskParameterDto>> parametersCaptor = ArgumentCaptor.forClass(List.class);
+        final ArgumentCaptor<List<TaskParameterDto>> parametersCaptor = ArgumentCaptor.forClass(List.class);
         Mockito.verify(jobLauncherCommonService, Mockito.times(1)).launchJob(Mockito.eq(taskDto), Mockito.anyString(), parametersCaptor.capture());
         Assertions.assertThat(parametersCaptor.getValue()).isEqualTo(parameters);
     }
@@ -94,7 +94,7 @@ class JobLauncherServiceTest {
         final TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.parse(timestamp), taskStatus, null, null, null, null, null, null);
         Mockito.when(taskManagerService.getTaskFromTimestamp(timestamp)).thenReturn(Optional.of(taskDto));
 
-        boolean stopJobResult = service.stopJob(timestamp, UUID.randomUUID());
+        final boolean stopJobResult = service.stopJob(timestamp, UUID.randomUUID());
 
         Assertions.assertThat(stopJobResult).isTrue();
         Mockito.verify(jobLauncherEventsLogger, Mockito.times(1)).warn(Mockito.anyString(), Mockito.any(OffsetDateTime.class));
@@ -108,7 +108,7 @@ class JobLauncherServiceTest {
         final TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.parse(timestamp), taskStatus, null, null, null, null, null, null);
         Mockito.when(taskManagerService.getTaskFromTimestamp(timestamp)).thenReturn(Optional.of(taskDto));
 
-        boolean stopJobResult = service.stopJob(timestamp, runId);
+        final boolean stopJobResult = service.stopJob(timestamp, runId);
 
         Assertions.assertThat(stopJobResult).isTrue();
         Mockito.verify(jobLauncherCommonService, Mockito.times(1)).stopJob(Mockito.eq(runId), Mockito.eq(taskDto), Mockito.anyString());

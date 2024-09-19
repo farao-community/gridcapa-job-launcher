@@ -35,8 +35,6 @@ import static org.mockito.Mockito.verify;
 @SpringBootTest
 class JobLauncherCommonServiceTest {
 
-    private static final String TEST_URL = "http://test-uri/";
-
     @Autowired
     private JobLauncherCommonService service;
 
@@ -105,11 +103,11 @@ class JobLauncherCommonServiceTest {
         final TaskDto taskDto = new TaskDto(id, OffsetDateTime.parse(timestamp), TaskStatus.READY, inputs, List.of(), List.of(), List.of(), runHistory, List.of());
         Mockito.when(taskManagerService.addNewRunInTaskHistory(timestamp, inputs)).thenReturn(Optional.of(taskDto));
         Mockito.when(taskManagerService.updateTaskStatus(timestamp, TaskStatus.PENDING)).thenReturn(true);
-        List<TaskParameterDto> parameters = List.of(new TaskParameterDto("id", "type", "value", "default"));
+        final List<TaskParameterDto> parameters = List.of(new TaskParameterDto("id", "type", "value", "default"));
 
         service.launchJob(taskDto, binding, parameters);
 
-        ArgumentCaptor<TaskDto> taskDtoCaptor = ArgumentCaptor.forClass(TaskDto.class);
+        final ArgumentCaptor<TaskDto> taskDtoCaptor = ArgumentCaptor.forClass(TaskDto.class);
         verify(streamBridge, times(1)).send(eq(binding), taskDtoCaptor.capture());
         Assertions.assertThat(taskDtoCaptor.getValue()).isNotNull();
         Assertions.assertThat(taskDtoCaptor.getValue().getParameters())

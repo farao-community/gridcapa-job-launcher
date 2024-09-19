@@ -51,7 +51,7 @@ class JobLauncherSchedulerTest {
 
     @Test
     void automaticTaskStartWithResponseStatusNotOk() {
-        TaskDto[] taskDtoArray = {};
+        final TaskDto[] taskDtoArray = {};
         Mockito.when(taskManagerService.getTasksFromBusinessDate(startingDate)).thenReturn(Optional.of(taskDtoArray));
 
         jobLauncherScheduler.automaticTaskStart();
@@ -61,9 +61,9 @@ class JobLauncherSchedulerTest {
 
     @ParameterizedTest
     @EnumSource(value = TaskStatus.class, names = {"NOT_CREATED", "CREATED", "PENDING", "RUNNING", "SUCCESS", "ERROR", "STOPPING", "INTERRUPTED"})
-    void automaticTaskStartWithNotReadyTask(TaskStatus taskStatus) {
-        TaskDto taskDto = new TaskDto(UUID.randomUUID(), null, taskStatus, null, null, null, null, null, null);
-        TaskDto[] taskDtoArray = {taskDto};
+    void automaticTaskStartWithNotReadyTask(final TaskStatus taskStatus) {
+        final TaskDto taskDto = new TaskDto(UUID.randomUUID(), null, taskStatus, null, null, null, null, null, null);
+        final TaskDto[] taskDtoArray = {taskDto};
         Mockito.when(taskManagerService.getTasksFromBusinessDate(startingDate)).thenReturn(Optional.of(taskDtoArray));
 
         jobLauncherScheduler.automaticTaskStart();
@@ -73,8 +73,8 @@ class JobLauncherSchedulerTest {
 
     @Test
     void automaticTaskStartWithReadyTask() {
-        TaskDto taskDto = new TaskDto(UUID.randomUUID(), null, TaskStatus.READY, null, null, null, null, null, null);
-        TaskDto[] taskDtoArray = {taskDto};
+        final TaskDto taskDto = new TaskDto(UUID.randomUUID(), null, TaskStatus.READY, null, null, null, null, null, null);
+        final TaskDto[] taskDtoArray = {taskDto};
         Mockito.when(taskManagerService.getTasksFromBusinessDate(startingDate)).thenReturn(Optional.of(taskDtoArray));
 
         jobLauncherScheduler.automaticTaskStart();

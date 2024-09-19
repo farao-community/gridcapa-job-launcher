@@ -69,7 +69,7 @@ public class JobLauncherCommonService {
     public void stopJob(final UUID runId, final TaskDto taskDto, final String stopBinding) {
         final String timestamp = taskDto.getTimestamp().toString();
         jobLauncherEventsLogger.info("Stopping task with timestamp {}", timestamp);
-        Optional<Boolean> interruptionOpt = interruptionServerService.interruptRun(runId, taskDto);
+        final Optional<Boolean> interruptionOpt = interruptionServerService.interruptRun(runId, taskDto);
         if (interruptionOpt.isPresent()) {
             streamBridge.send(stopBinding, taskDto.getId().toString());
             taskManagerService.updateTaskStatus(timestamp, TaskStatus.STOPPING);
