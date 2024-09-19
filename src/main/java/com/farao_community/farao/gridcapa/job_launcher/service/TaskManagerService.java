@@ -53,9 +53,8 @@ public class TaskManagerService {
             maxAttemptsExpression = "${retry.max-attempts}",
             recover = "fallbackGetTaskFromTimestamp")
     public Optional<TaskDto> getTaskFromTimestamp(final String timestamp) {
-        final RetryContext retryContext = RetrySynchronizationManager.getContext();
-        final int retryCount = retryContext != null ? retryContext.getRetryCount() : -1;
         try {
+            final int retryCount = getRetryCount();
             final String requestUrl = getTaskManagerTimestampUrl(timestamp);
             final String sanifiedUrl = LoggingUtil.sanifyString(requestUrl);
             LOGGER.info(REQUESTING_URL_ATTEMPT, sanifiedUrl, retryCount);
@@ -77,9 +76,8 @@ public class TaskManagerService {
             maxAttemptsExpression = "${retry.max-attempts}",
             recover = "fallbackGetTasksFromBusinessDate")
     public Optional<TaskDto[]> getTasksFromBusinessDate(final String startingDate) {
-        final RetryContext retryContext = RetrySynchronizationManager.getContext();
-        final int retryCount = retryContext != null ? retryContext.getRetryCount() : -1;
         try {
+            final int retryCount = getRetryCount();
             final String requestUrl = getTaskManagerBusinessDateUrl(startingDate);
             LOGGER.info(REQUESTING_URL_ATTEMPT, requestUrl, retryCount);
             final ResponseEntity<TaskDto[]> responseEntity = restTemplateBuilder.build().getForEntity(requestUrl, TaskDto[].class);
@@ -100,9 +98,8 @@ public class TaskManagerService {
             maxAttemptsExpression = "${retry.max-attempts}",
             recover = "fallbackAddNewRunInTaskHistory")
     public Optional<TaskDto> addNewRunInTaskHistory(final String timestamp, final List<ProcessFileDto> inputs) {
-        final RetryContext retryContext = RetrySynchronizationManager.getContext();
-        final int retryCount = retryContext != null ? retryContext.getRetryCount() : -1;
         try {
+            final int retryCount = getRetryCount();
             final HttpEntity<List<ProcessFileDto>> requestEntity = new HttpEntity<>(inputs);
             final String requestUrl = getTaskManagerTimestampUrl(timestamp) + "/runHistory";
             final String sanifiedUrl = LoggingUtil.sanifyString(requestUrl);
@@ -125,9 +122,8 @@ public class TaskManagerService {
             maxAttemptsExpression = "${retry.max-attempts}",
             recover = "fallbackUpdateTaskStatus")
     public boolean updateTaskStatus(final String timestamp, final TaskStatus taskStatus) {
-        final RetryContext retryContext = RetrySynchronizationManager.getContext();
-        final int retryCount = retryContext != null ? retryContext.getRetryCount() : -1;
         try {
+            final int retryCount = getRetryCount();
             final String requestUrl = getTaskStatusUpdateUrl(timestamp, taskStatus);
             final String sanifiedUrl = LoggingUtil.sanifyString(requestUrl);
             LOGGER.info(REQUESTING_URL_ATTEMPT, sanifiedUrl, retryCount);
@@ -142,6 +138,11 @@ public class TaskManagerService {
     public boolean fallbackUpdateTaskStatus(final Exception e, final String timestamp, final TaskStatus taskStatus) {
         LOGGER.error("Problem occurred while requesting task-manager a status update ({}) for timestamp {}", taskStatus, timestamp, e);
         return false;
+    }
+
+    private static int getRetryCount() {
+        final RetryContext retryContext = RetrySynchronizationManager.getContext();
+        return retryContext != null ? retryContext.getRetryCount() : -1;
     }
 
     private static <T> Optional<T> getOptionalFromResponseEntity(final ResponseEntity<T> responseEntity) {
