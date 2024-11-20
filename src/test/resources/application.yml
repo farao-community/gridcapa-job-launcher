@@ -16,6 +16,8 @@ job-launcher:
     - RAOREQUEST
     - CRAC
 
+gridcapa-version: 5.15.0
+
 spring:
   application:
     name: gridcapa-job-launcher

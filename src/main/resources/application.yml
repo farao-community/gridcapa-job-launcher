@@ -3,6 +3,8 @@ spring:
     function:
       definition: consumeTaskDtoUpdate
 
+gridcapa-version: 5.15.0
+
 job-launcher:
   auto: false
   process:
