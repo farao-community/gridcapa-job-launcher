@@ -6,6 +6,7 @@
  */
 package com.farao_community.farao.gridcapa.job_launcher.service;
 
+import com.farao_community.farao.gridcapa.job_launcher.GridcapaConfiguration;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskParameterDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskStatus;
@@ -28,15 +29,18 @@ public class JobLauncherCommonService {
     private final StreamBridge streamBridge;
     private final InterruptionServerService interruptionServerService;
     private final TaskManagerService taskManagerService;
+    private final GridcapaConfiguration gridcapaConfiguration;
 
     public JobLauncherCommonService(Logger jobLauncherEventsLogger,
                                     StreamBridge streamBridge,
                                     InterruptionServerService interruptionServerService,
-                                    TaskManagerService taskManagerService) {
+                                    TaskManagerService taskManagerService,
+                                    GridcapaConfiguration gridcapaConfiguration) {
         this.jobLauncherEventsLogger = jobLauncherEventsLogger;
         this.streamBridge = streamBridge;
         this.interruptionServerService = interruptionServerService;
         this.taskManagerService = taskManagerService;
+        this.gridcapaConfiguration = gridcapaConfiguration;
     }
 
     public void launchJob(final TaskDto taskDto, final String runBinding) {
@@ -54,7 +58,7 @@ public class JobLauncherCommonService {
 
             final boolean taskStatusUpdated = taskManagerService.updateTaskStatus(timestamp, TaskStatus.PENDING);
             if (taskStatusUpdated) {
-                jobLauncherEventsLogger.info("Task launched on TS {}", timestamp);
+                jobLauncherEventsLogger.info("Task launched on TS {} using Gridcapa version {}", timestamp, gridcapaConfiguration.getVersion());
                 streamBridge.send(runBinding, taskDtoWithRun);
             } else {
                 jobLauncherEventsLogger.warn("Failed to launch task on TS {}: could not set task's status to PENDING", taskDto.getTimestamp());
