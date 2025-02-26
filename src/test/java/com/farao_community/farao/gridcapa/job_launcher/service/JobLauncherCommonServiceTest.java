@@ -142,7 +142,7 @@ class JobLauncherCommonServiceTest {
         service.stopJob(runId, taskDto, binding);
 
         verify(interruptionServerService, times(1)).interruptRun(runId, taskDto);
-        verify(streamBridge, times(1)).send(binding, taskId.toString());
+        verify(streamBridge, times(1)).send(binding, runId.toString());
         verify(taskManagerService, times(1)).updateTaskStatus(timestamp, TaskStatus.STOPPING);
     }
 }

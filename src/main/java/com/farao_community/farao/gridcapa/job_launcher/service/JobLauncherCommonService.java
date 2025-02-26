@@ -75,7 +75,7 @@ public class JobLauncherCommonService {
         jobLauncherEventsLogger.info("Stopping task with timestamp {}", timestamp);
         final Optional<Boolean> interruptionOpt = interruptionServerService.interruptRun(runId, taskDto);
         if (interruptionOpt.isPresent()) {
-            streamBridge.send(stopBinding, taskDto.getId().toString());
+            streamBridge.send(stopBinding, runId.toString());
             taskManagerService.updateTaskStatus(timestamp, TaskStatus.STOPPING);
         } else {
             jobLauncherEventsLogger.warn("Failed to stop task on TS {}: could not contact interruption-server", taskDto.getTimestamp());
