@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * @author Joris Mancini {@literal <joris.mancini at rte-france.com>}
@@ -27,6 +28,7 @@ public class JobLauncherService {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobLauncherService.class);
     private static final String RUN_BINDING = "run-task";
     private static final String STOP_BINDING = "stop-task";
+    private final CopyOnWriteArraySet<String> timestampsBeingLaunched = new CopyOnWriteArraySet<>();
 
     private final JobLauncherCommonService jobLauncherCommonService;
     private final Logger jobLauncherEventsLogger;
@@ -55,6 +57,14 @@ public class JobLauncherService {
     public boolean launchJob(final String timestamp, final List<TaskParameterDto> parameters) {
         final String sanifiedTimestamp = LoggingUtil.sanifyString(timestamp);
         LOGGER.info("Received order to launch task {}", sanifiedTimestamp);
+        LOGGER.info("Adding {} to tasks being launched.", sanifiedTimestamp);
+        final boolean timestampAdded = timestampsBeingLaunched.add(sanifiedTimestamp);
+        if (!timestampAdded) {
+            LOGGER.warn("Task {} already being launched, stopping this thread.", sanifiedTimestamp);
+            return false;
+        } else {
+            LOGGER.info("{} has been correctly added to tasks being launched.", sanifiedTimestamp);
+        }
         final Optional<TaskDto> taskDtoOpt = taskManagerService.getTaskFromTimestamp(timestamp);
         if (taskDtoOpt.isPresent()) {
             final TaskDto taskDto = taskDtoOpt.get();
@@ -67,6 +77,8 @@ public class JobLauncherService {
             } else {
                 jobLauncherEventsLogger.warn("Failed to launch task with timestamp {} because it is not ready yet", taskDto.getTimestamp());
             }
+            LOGGER.info("Removing {} from tasks being launched.", sanifiedTimestamp);
+            timestampsBeingLaunched.remove(sanifiedTimestamp);
             return true;
         } else {
             LOGGER.error("Failed to launch task with timestamp {}: could not retrieve task from the task-manager", sanifiedTimestamp);

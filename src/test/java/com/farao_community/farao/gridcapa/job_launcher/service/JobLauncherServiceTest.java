@@ -10,6 +10,7 @@ import com.farao_community.farao.gridcapa.task_manager.api.TaskDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskParameterDto;
 import com.farao_community.farao.gridcapa.task_manager.api.TaskStatus;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -24,6 +25,12 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 @SpringBootTest
 class JobLauncherServiceTest {
@@ -46,6 +53,18 @@ class JobLauncherServiceTest {
         final boolean launchJobResult = service.launchJob(timestamp, List.of());
 
         Assertions.assertThat(launchJobResult).isFalse();
+    }
+
+    @Test
+    @DisplayName("Testing that a timestamp cannot be launched twice simultaneously.")
+    void testSimultaneity() throws ExecutionException, InterruptedException {
+        final String timestamp = "2024-09-18T09:30Z";
+        final TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.parse(timestamp), TaskStatus.ERROR, null, null, null, null, null, null);
+        Mockito.when(taskManagerService.getTaskFromTimestamp(timestamp)).thenReturn(Optional.of(taskDto));
+        final Supplier<Boolean> supplier = () -> service.launchJob(timestamp, List.of());
+        final CompletableFuture<Boolean> future1 = CompletableFuture.supplyAsync(supplier);
+        final CompletableFuture<Boolean> future2 = CompletableFuture.supplyAsync(supplier);
+        assertNotEquals(future1.get(), future2.get());
     }
 
     @ParameterizedTest
