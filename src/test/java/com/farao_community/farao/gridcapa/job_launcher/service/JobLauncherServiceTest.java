@@ -26,10 +26,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 class JobLauncherServiceTest {
@@ -60,10 +64,43 @@ class JobLauncherServiceTest {
         final String timestamp = "2024-09-18T09:30Z";
         final TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.parse(timestamp), TaskStatus.ERROR, null, null, null, null, null, null);
         Mockito.when(taskManagerService.getTaskFromTimestamp(timestamp)).thenReturn(Optional.of(taskDto));
-        final Supplier<Boolean> supplier = () -> service.launchJob(timestamp, List.of());
+        // Use CountDownLatch to ensure both threads start simultaneously
+        final CountDownLatch startLatch = new CountDownLatch(1);
+        final Supplier<Boolean> supplier = () -> {
+            try {
+                startLatch.await(); // Both threads wait here
+                return service.launchJob(timestamp, List.of());
+            } catch (final InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return false;
+            }
+        };
         final CompletableFuture<Boolean> future1 = CompletableFuture.supplyAsync(supplier);
         final CompletableFuture<Boolean> future2 = CompletableFuture.supplyAsync(supplier);
-        assertNotEquals(future1.get(), future2.get());
+        // Release both threads at once
+        startLatch.countDown();
+        // Get results and verify one succeeded and one failed
+        final Boolean result1 = future1.get();
+        final Boolean result2 = future2.get();
+        // Either result1 is true and result2 is false, or vice versa
+        assertNotEquals(result1, result2);
+        assertTrue(result1 || result2); // At least one should succeed
+        assertFalse(result1 && result2); // Both cannot succeed
+        // Ensure that timestamp has been cleared and can be started again
+        assertTrue(service.launchJob(timestamp, List.of()));
+    }
+
+    @Test
+    void testException() {
+        final String timestamp = "2024-09-18T09:30Z";
+        final TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.parse(timestamp), TaskStatus.ERROR, null, null, null, null, null, null);
+        Mockito.when(taskManagerService.getTaskFromTimestamp(timestamp))
+                // crashes on first run
+                .thenThrow(new RuntimeException())
+                // then succeeds on second
+                .thenReturn(Optional.of(taskDto));
+        assertThrows(RuntimeException.class, () -> service.launchJob(timestamp, List.of()));
+        Assertions.assertThat(service.launchJob(timestamp, List.of())).isTrue();
     }
 
     @ParameterizedTest
