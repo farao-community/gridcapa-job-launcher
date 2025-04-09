@@ -91,6 +91,7 @@ class JobLauncherServiceTest {
     }
 
     @Test
+    @DisplayName("Testing that a timestamp is properly cleaned up after an exception occurs.")
     void testException() {
         final String timestamp = "2024-09-18T09:30Z";
         final TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.parse(timestamp), TaskStatus.ERROR, null, null, null, null, null, null);
