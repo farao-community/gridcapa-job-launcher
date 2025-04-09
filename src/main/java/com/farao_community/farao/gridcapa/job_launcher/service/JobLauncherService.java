@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * @author Joris Mancini {@literal <joris.mancini at rte-france.com>}
@@ -27,6 +28,7 @@ public class JobLauncherService {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobLauncherService.class);
     private static final String RUN_BINDING = "run-task";
     private static final String STOP_BINDING = "stop-task";
+    private final CopyOnWriteArraySet<String> timestampsBeingLaunched = new CopyOnWriteArraySet<>();
 
     private final JobLauncherCommonService jobLauncherCommonService;
     private final Logger jobLauncherEventsLogger;
@@ -55,23 +57,40 @@ public class JobLauncherService {
     public boolean launchJob(final String timestamp, final List<TaskParameterDto> parameters) {
         final String sanifiedTimestamp = LoggingUtil.sanifyString(timestamp);
         LOGGER.info("Received order to launch task {}", sanifiedTimestamp);
-        final Optional<TaskDto> taskDtoOpt = taskManagerService.getTaskFromTimestamp(timestamp);
-        if (taskDtoOpt.isPresent()) {
-            final TaskDto taskDto = taskDtoOpt.get();
-            // Propagate in logs MDC the task id as an extra field to be able to match microservices logs with calculation tasks.
-            // This should be done only once, as soon as the information to add in mdc is available.
-            MDC.put("gridcapa-task-id", taskDto.getId().toString());
-
-            if (isTaskReadyToBeLaunched(taskDto)) {
-                jobLauncherCommonService.launchJob(taskDto, RUN_BINDING, parameters);
-            } else {
-                jobLauncherEventsLogger.warn("Failed to launch task with timestamp {} because it is not ready yet", taskDto.getTimestamp());
-            }
-            return true;
+        LOGGER.info("Adding {} to tasks being launched.", sanifiedTimestamp);
+        final boolean timestampAdded = timestampsBeingLaunched.add(sanifiedTimestamp);
+        if (!timestampAdded) {
+            LOGGER.warn("Task {} already being launched, stopping this thread.", sanifiedTimestamp);
+            return false;
         } else {
-            LOGGER.error("Failed to launch task with timestamp {}: could not retrieve task from the task-manager", sanifiedTimestamp);
+            LOGGER.info("{} has been correctly added to tasks being launched.", sanifiedTimestamp);
         }
-        return false;
+        final boolean result;
+        try {
+            final Optional<TaskDto> taskDtoOpt = taskManagerService.getTaskFromTimestamp(timestamp);
+            if (taskDtoOpt.isPresent()) {
+                final TaskDto taskDto = taskDtoOpt.get();
+                // Propagate in logs MDC the task id as an extra field to be able to match microservices logs with calculation tasks.
+                // This should be done only once, as soon as the information to add in mdc is available.
+                MDC.put("gridcapa-task-id", taskDto.getId().toString());
+                if (isTaskReadyToBeLaunched(taskDto)) {
+                    jobLauncherCommonService.launchJob(taskDto, RUN_BINDING, parameters);
+                } else {
+                    jobLauncherEventsLogger.warn("Failed to launch task with timestamp {} because it is not ready yet", taskDto.getTimestamp());
+                }
+                result = true;
+            } else {
+                LOGGER.error("Failed to launch task with timestamp {}: could not retrieve task from the task-manager", sanifiedTimestamp);
+                result = false;
+            }
+        } catch (final Exception e) {
+            LOGGER.error("Exception occured while launching task with timestamp {}", sanifiedTimestamp);
+            throw e;
+        } finally {
+            LOGGER.info("Removing {} from tasks being launched.", sanifiedTimestamp);
+            timestampsBeingLaunched.remove(sanifiedTimestamp);
+        }
+        return result;
     }
 
     private static boolean isTaskReadyToBeLaunched(final TaskDto taskDto) {
