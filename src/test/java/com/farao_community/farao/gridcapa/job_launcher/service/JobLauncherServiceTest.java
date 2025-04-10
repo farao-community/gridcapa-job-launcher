@@ -14,6 +14,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.AdditionalAnswers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
@@ -63,7 +64,9 @@ class JobLauncherServiceTest {
     void testSimultaneity() throws ExecutionException, InterruptedException {
         final String timestamp = "2024-09-18T09:30Z";
         final TaskDto taskDto = new TaskDto(UUID.randomUUID(), OffsetDateTime.parse(timestamp), TaskStatus.ERROR, null, null, null, null, null, null);
-        Mockito.when(taskManagerService.getTaskFromTimestamp(timestamp)).thenReturn(Optional.of(taskDto));
+        Mockito.when(taskManagerService.getTaskFromTimestamp(timestamp))
+                .thenAnswer(AdditionalAnswers
+                        .answersWithDelay(1000, invocation -> Optional.of(taskDto)));
         // Use CountDownLatch to ensure both threads start simultaneously
         final CountDownLatch startLatch = new CountDownLatch(1);
         final Supplier<Boolean> supplier = () -> {
