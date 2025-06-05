@@ -9,7 +9,7 @@ package com.farao_community.farao.gridcapa.job_launcher.service;
 import org.awaitility.Durations;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.atLeastOnce;
@@ -22,7 +22,7 @@ import static org.mockito.Mockito.verify;
 @SpringBootTest
 class JobLauncherSchedulerTriggeringTest {
 
-    @SpyBean
+    @MockitoSpyBean
     private JobLauncherScheduler jobLauncherScheduler;
 
     @Test
