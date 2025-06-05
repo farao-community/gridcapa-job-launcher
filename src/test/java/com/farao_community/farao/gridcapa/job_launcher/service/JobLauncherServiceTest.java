@@ -20,7 +20,7 @@ import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -42,11 +42,11 @@ class JobLauncherServiceTest {
     @Autowired
     private JobLauncherService service;
 
-    @MockBean
+    @MockitoBean
     private JobLauncherCommonService jobLauncherCommonService;
-    @MockBean
+    @MockitoBean
     private Logger jobLauncherEventsLogger;
-    @MockBean
+    @MockitoBean
     private TaskManagerService taskManagerService;
 
     @Test
