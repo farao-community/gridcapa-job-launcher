@@ -13,6 +13,8 @@
     <description>Service responsible of launching a task in a gridcapa-based application.</description>
 
     <properties>
+        <argLine /> <!-- required for java agent declaration, do not remove -->
+
         <!-- TECHNICAL DEPENDENCIES -->
         <awaitability.version>4.2.0</awaitability.version>
 
@@ -37,7 +39,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <argLine>-javaagent:${org.mockito:mockito-core:jar}</argLine>
+                    <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar}</argLine>
                 </configuration>
             </plugin>
             <plugin>
