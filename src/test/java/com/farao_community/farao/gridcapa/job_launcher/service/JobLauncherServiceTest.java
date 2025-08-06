@@ -31,11 +31,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 @SpringBootTest
 class JobLauncherServiceTest {
 
@@ -86,11 +81,11 @@ class JobLauncherServiceTest {
         final Boolean result1 = future1.get();
         final Boolean result2 = future2.get();
         // Either result1 is true and result2 is false, or vice versa
-        assertNotEquals(result1, result2);
-        assertTrue(result1 || result2); // At least one should succeed
-        assertFalse(result1 && result2); // Both cannot succeed
+        Assertions.assertThat(result1).isNotEqualTo(result2);
+        Assertions.assertThat(result1 || result2).isTrue(); // At least one should succeed
+        Assertions.assertThat(result1 && result2).isFalse(); // Both cannot succeed
         // Ensure that timestamp has been cleared and can be started again
-        assertTrue(service.launchJob(timestamp, List.of()));
+        Assertions.assertThat(service.launchJob(timestamp, List.of())).isTrue();
     }
 
     @Test
@@ -103,8 +98,10 @@ class JobLauncherServiceTest {
                 .thenThrow(new RuntimeException())
                 // then succeeds on second
                 .thenReturn(Optional.of(taskDto));
-        assertThrows(RuntimeException.class, () -> service.launchJob(timestamp, List.of()));
-        Assertions.assertThat(service.launchJob(timestamp, List.of())).isTrue();
+        final List<TaskParameterDto> emptyList = List.of();
+        Assertions.assertThatExceptionOfType(RuntimeException.class)
+                .isThrownBy(() -> service.launchJob(timestamp, emptyList));
+        Assertions.assertThat(service.launchJob(timestamp, emptyList)).isTrue();
     }
 
     @ParameterizedTest
